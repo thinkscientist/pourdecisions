@@ -248,7 +248,7 @@ window.PLACES = [
   // ── Restaurants: walk in, neighbourhood, daytime ───────────────────────
   {
     id: "jules", name: "Jules", kind: "food",
-    area: "Lower Haight", addr: "", price: "$$", approx: true,
+    area: "Lower Haight", addr: "", price: "$$",
     blurb: "A 42-seat sourdough pizza room, one of the city's best new spots. The crust is the point.",
     order: "Margherita first, then a second pie to share.",
     tags: ["Expect a wait"],
@@ -274,7 +274,7 @@ window.PLACES = [
   },
   {
     id: "outta-sight", name: "Outta Sight Pizza", kind: "food",
-    area: "Larkin St", addr: "Larkin St", price: "$$", approx: true,
+    area: "Larkin St", addr: "Larkin St", price: "$$",
     blurb: "Detroit- and New York-leaning pies in a lively room. The move when Jules has a long wait.",
     order: "A Detroit-style square pie.",
     tags: [],
@@ -282,7 +282,7 @@ window.PLACES = [
   },
   {
     id: "breadbelly", name: "Breadbelly", kind: "coffee",
-    area: "Richmond", addr: "", price: "$", approx: true,
+    area: "Richmond", addr: "", price: "$",
     blurb: "Filipino-leaning bakery-cafe: ube, calamansi and pandan pastries alongside excellent coffee.",
     order: "Go in the morning, before the best pastries sell out. Then Cinderella Bakery nearby.",
     tags: ["Mornings"],
@@ -290,7 +290,7 @@ window.PLACES = [
   },
   {
     id: "cinderella", name: "Cinderella Bakery", kind: "food",
-    area: "Richmond", addr: "", price: "$", approx: true,
+    area: "Richmond", addr: "", price: "$",
     blurb: "Russian baking in the Richmond. Pairs with Breadbelly.",
     order: "Piroshki.",
     tags: [],
@@ -329,13 +329,13 @@ window.PLACES = [
   },
   {
     id: "rintaro", name: "Rintaro", kind: "food",
-    area: "Mission", addr: "", price: "", approx: true,
+    area: "Mission", addr: "", price: "",
     blurb: "A quiet izakaya.", order: "", tags: ["Book ahead"], book: true,
     q: "Rintaro, Mission, San Francisco, CA",
   },
   {
     id: "prubechu", name: "Prubechu", kind: "food",
-    area: "Mission", addr: "", price: "", approx: true,
+    area: "Mission", addr: "", price: "",
     blurb: "Chamorro cooking.", order: "", tags: [],
     q: "Prubechu, Mission, San Francisco, CA",
   },
@@ -359,13 +359,13 @@ window.PLACES = [
   },
   {
     id: "piglet", name: "Piglet & Co", kind: "food",
-    area: "Mission", addr: "", price: "", approx: true,
+    area: "Mission", addr: "2170 Mission St", price: "",
     blurb: "Taiwanese.", order: "", tags: [],
-    q: "Piglet & Co, Mission, San Francisco, CA",
+    q: "Piglet & Co, 2170 Mission St, San Francisco, CA",
   },
   {
     id: "lazy-bear", name: "Lazy Bear", kind: "food",
-    area: "Mission", addr: "", price: "$$$", approx: true,
+    area: "Mission", addr: "", price: "$$$",
     blurb: "Tasting menu.", order: "", tags: ["Book far ahead"], book: true,
     q: "Lazy Bear, Mission, San Francisco, CA",
   },
@@ -385,7 +385,7 @@ window.PLACES = [
   },
   {
     id: "dalida", name: "Dalida", kind: "food",
-    area: "Presidio", addr: "Tunnel Tops area", price: "", approx: true,
+    area: "Presidio", addr: "Tunnel Tops area", price: "",
     blurb: "Mediterranean, near the Presidio Tunnel Tops.", order: "", tags: [],
     q: "Dalida, Presidio, Tunnel Tops area, San Francisco, CA",
   },
@@ -397,27 +397,27 @@ window.PLACES = [
   },
   {
     id: "naides", name: "Restaurant Naides", kind: "food",
-    area: "Nob Hill", addr: "", price: "", approx: true,
+    area: "Nob Hill", addr: "708 Bush St", price: "",
     blurb: "Filipino.", order: "", tags: [],
-    q: "Restaurant Naides, Nob Hill, San Francisco, CA",
+    q: "Restaurant Naides, 708 Bush St, San Francisco, CA",
   },
   {
     id: "mandalay", name: "Mandalay", kind: "food",
-    area: "Inner Richmond", addr: "", price: "", approx: true,
+    area: "Inner Richmond", addr: "", price: "",
     blurb: "Burmese.", order: "Tea-leaf salad and mohinga.", tags: [],
     q: "Mandalay, Inner Richmond, San Francisco, CA",
   },
   {
     id: "kin-khao", name: "Kin Khao", kind: "food",
-    area: "Union Square", addr: "", price: "", approx: true,
+    area: "Union Square", addr: "", price: "",
     blurb: "Thai, lively and spicy.", order: "", tags: [],
     q: "Kin Khao, Union Square, San Francisco, CA",
   },
   {
     id: "dingles", name: "Dingles Public House", kind: "drinks",
-    area: "Hayes Valley", addr: "", price: "", approx: true,
+    area: "Hayes Valley", addr: "333 Fulton St (Inn at the Opera)", price: "",
     blurb: "British pub.", order: "", tags: [],
-    q: "Dingles Public House, Hayes Valley, San Francisco, CA",
+    q: "Dingles Public House, 333 Fulton St, San Francisco, CA",
   },
   {
     id: "thanh-long", name: "Thanh Long", kind: "food",
@@ -427,49 +427,49 @@ window.PLACES = [
   },
   {
     id: "the-morris", name: "The Morris", kind: "food",
-    area: "Potrero Hill", addr: "", price: "", approx: true,
+    area: "Potrero Hill", addr: "", price: "",
     blurb: "Smoked meats.", order: "", tags: [],
     q: "The Morris, Potrero Hill, San Francisco, CA",
   },
   {
     id: "sohn", name: "Sōhn", kind: "food",
-    area: "Dogpatch", addr: "", price: "", approx: true,
+    area: "Dogpatch", addr: "", price: "",
     blurb: "Korean cafe.", order: "", tags: [],
     q: "Sōhn, Dogpatch, San Francisco, CA",
   },
   {
     id: "old-mandarin", name: "Old Mandarin Islamic Restaurant", kind: "food",
-    area: "Parkside", addr: "", price: "", approx: true,
+    area: "Parkside", addr: "", price: "",
     blurb: "Northern Chinese Islamic cooking.", order: "", tags: [],
     q: "Old Mandarin Islamic Restaurant, Parkside, San Francisco, CA",
   },
   {
     id: "la-cigale", name: "La Cigale", kind: "food",
-    area: "Glen Park", addr: "", price: "", approx: true,
+    area: "Glen Park", addr: "", price: "",
     blurb: "Occitan cooking in Glen Park.", order: "", tags: [],
     q: "La Cigale, Glen Park, San Francisco, CA",
   },
   {
     id: "abaca", name: "Abacá", kind: "food",
-    area: "Fisherman's Wharf", addr: "", price: "", approx: true,
+    area: "Fisherman's Wharf", addr: "2700 Jones St (Kimpton Alton Hotel)", price: "",
     blurb: "Filipino.", order: "", tags: [],
-    q: "Abacá, Fisherman's Wharf, San Francisco, CA",
+    q: "Abacá, 2700 Jones St, San Francisco, CA",
   },
   {
     id: "beit-rima", name: "Beit Rima", kind: "food",
-    area: "Cole Valley", addr: "", price: "", approx: true,
+    area: "Cole Valley", addr: "", price: "",
     blurb: "Arabic.", order: "", tags: [],
     q: "Beit Rima, Cole Valley, San Francisco, CA",
   },
   {
     id: "fikscue", name: "Fikscue Thrive City", kind: "food",
-    area: "Mission Bay", addr: "Thrive City", price: "", approx: true,
+    area: "Mission Bay", addr: "7 Warriors Way, Thrive City", price: "",
     blurb: "BBQ.", order: "", tags: [],
-    q: "Fikscue Thrive City, Mission Bay, San Francisco, CA",
+    q: "Fikscue, 7 Warriors Way, San Francisco, CA",
   },
   {
     id: "yo-tambien", name: "Yo También Cantina", kind: "food",
-    area: "Inner Sunset", addr: "", price: "", approx: true,
+    area: "Inner Sunset", addr: "", price: "",
     blurb: "Mexican cantina in the Inner Sunset.", order: "", tags: [],
     q: "Yo También Cantina, Inner Sunset, San Francisco, CA",
   },
@@ -519,15 +519,15 @@ const COORDS = {
   "delfina": [37.76141, -122.42434], "rintaro": [37.76889, -122.41513],
   "prubechu": [37.76133, -122.41950], "taqueria-cancun": [37.76046, -122.41940],
   "true-laurel": [37.75950, -122.41149], "trick-dog": [37.75922, -122.41119],
-  "piglet": [37.76000, -122.41800], "lazy-bear": [37.76032, -122.41977],
+  "piglet": [37.76231, -122.41970], "lazy-bear": [37.76032, -122.41977],
   "quince": [37.79743, -122.40327], "bix": [37.79685, -122.40293],
   "dalida": [37.79981, -122.45976], "house-of-prime-rib": [37.79339, -122.42254],
-  "naides": [37.79300, -122.41610], "mandalay": [37.78522, -122.46433],
-  "kin-khao": [37.78503, -122.40927], "dingles": [37.77650, -122.42450],
+  "naides": [37.79023, -122.40913], "mandalay": [37.78522, -122.46433],
+  "kin-khao": [37.78503, -122.40927], "dingles": [37.77864, -122.42222],
   "thanh-long": [37.76029, -122.50607], "the-morris": [37.76296, -122.40853],
   "sohn": [37.75736, -122.38804], "old-mandarin": [37.73833, -122.50070],
-  "la-cigale": [37.73440, -122.43344], "abaca": [37.80590, -122.41700],
-  "beit-rima": [37.76595, -122.44967], "fikscue": [37.76800, -122.38780],
+  "la-cigale": [37.73440, -122.43344], "abaca": [37.80628, -122.41700],
+  "beit-rima": [37.76595, -122.44967], "fikscue": [37.76878, -122.38666],
   "yo-tambien": [37.76515, -122.46021], "verjus": [37.79582, -122.40253],
   "joujou": [37.76966, -122.40379],
 };
@@ -543,8 +543,9 @@ const MAP_ADDR = {
   "yo-tambien": "205 Hugo St",
 };
 
-// No exact match in the map data: the pin marks the neighbourhood only.
-const APPROX = new Set(["piglet", "naides", "dingles", "abaca", "fikscue"]);
+// Places whose pin marks only the neighbourhood (none at the moment: the last five were
+// confirmed against restaurant listings on 30 Oct 2026). A dashed pin outline shows these.
+const APPROX = new Set([]);
 
 for (const p of window.PLACES) {
   [p.lat, p.lng] = COORDS[p.id];

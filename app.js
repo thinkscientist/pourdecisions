@@ -185,17 +185,12 @@
     </li>`;
   }
 
-  // True when the phone isn't on San Francisco time (e.g. still on the plane).
-  function phoneClockDiffers(now) {
-    const d = new Date();
-    const local = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    return local !== now.date || Math.abs(d.getHours() * 60 + d.getMinutes() - now.mins) > 1;
-  }
-
-  // ── Brand row clock: always San Francisco time ───────────────────────────
+  // ── Brand row: the phone shows the time, so the row only says something when the
+  // app is previewing another time (?now=…).
   function renderClock(now) {
-    const note = now.pinned ? " (preview)" : phoneClockDiffers(now) ? " in SF" : "";
-    $("#clock").textContent = `${dayLabel(now.date)} · ${fmtTime(now.mins)}${note}`;
+    const el = $("#clock");
+    el.hidden = !now.pinned;
+    if (now.pinned) el.textContent = `Preview: ${dayLabel(now.date)}, ${fmtTime(now.mins)}`;
   }
 
   // ── Nearby ───────────────────────────────────────────────────────────────

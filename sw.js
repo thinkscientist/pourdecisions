@@ -2,7 +2,7 @@
 // App files: served from cache, refreshed in the background.
 // Map: tiles, fonts and icons are cached as you browse, so areas you've already looked at
 // still draw offline. The style file is refreshed in the background so tile versions stay current.
-const APP = "pd-app-v12";
+const APP = "pd-app-v13";
 const TILES = "pd-tiles-v2";
 const TILE_LIMIT = 1500;
 const SHELL = [
