@@ -36,7 +36,19 @@
   --status-closed: var(--sf-fog-500);
   --warn-bg: #FBF0E0;
   --shadow: 0 1px 2px rgb(19 33 43 / .08), 0 6px 20px rgb(19 33 43 / .10);
-  --tile-filter: saturate(.6) contrast(.95) brightness(1.02);
+
+  /* ── Map (OpenFreeMap vector style, recoloured from these) ── */
+  --map-land: #EEF1F1;
+  --map-water: #C6DAE6;         /* the bay, a light wash of --sf-bay */
+  --map-water-label: #4E7A99;
+  --map-park: #D6E5DA;          /* a light wash of --sf-cypress */
+  --map-building: #E2E6E7;
+  --map-building-line: #D8DDDF;
+  --map-road: #FFFFFF;
+  --map-road-major: #FFFFFF;
+  --map-road-casing: #D5DBDD;
+  --map-rail: #C9D0D3;
+  --map-label: #66737A;
 
   /* ── Type ── */
   --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
@@ -72,7 +84,9 @@
     --status-open: #5CBF8A; --status-soon: #E8A93A; --status-closed: #93A1A8;
     --warn-bg: #2E2414;
     --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 6px 20px rgb(0 0 0 / .4);
-    --tile-filter: invert(1) hue-rotate(180deg) brightness(.8) contrast(.85) saturate(.45);
+    --map-land: #0D1820; --map-water: #0F2A3D; --map-water-label: #6E96B3; --map-park: #13261D;
+    --map-building: #15222B; --map-building-line: #15222B; --map-road: #1F2F3A; --map-road-major: #2A3D49;
+    --map-road-casing: #0D1820; --map-rail: #2A3A44; --map-label: #8FA0A9;
     color-scheme: dark;
   }
 }
@@ -84,7 +98,9 @@
   --status-open: #5CBF8A; --status-soon: #E8A93A; --status-closed: #93A1A8;
   --warn-bg: #2E2414;
   --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 6px 20px rgb(0 0 0 / .4);
-  --tile-filter: invert(1) hue-rotate(180deg) brightness(.8) contrast(.85) saturate(.45);
+  --map-land: #0D1820; --map-water: #0F2A3D; --map-water-label: #6E96B3; --map-park: #13261D;
+  --map-building: #15222B; --map-building-line: #15222B; --map-road: #1F2F3A; --map-road-major: #2A3D49;
+  --map-road-casing: #0D1820; --map-rail: #2A3A44; --map-label: #8FA0A9;
   color-scheme: dark;
 }
 
@@ -135,13 +151,12 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 
 /* ── Map ───────────────────────────────────────────────────────────────── */
 .mapwrap { position: relative; min-height: 0; }
-#map { position: absolute; inset: 0; background: var(--surface-2); }
-.leaflet-tile-pane { filter: var(--tile-filter); }
-.leaflet-container { font: var(--fs-xs) var(--font-body); }
-.leaflet-control-attribution {
-  font-size: 10px; background: color-mix(in srgb, var(--surface) 75%, transparent) !important; color: var(--text-muted) !important;
-}
-.leaflet-control-attribution a { color: var(--text-muted) !important; }
+#map { position: absolute; inset: 0; background: var(--map-land); }
+.maplibregl-ctrl-attrib { font: 10px var(--font-body); }
+.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact { background: color-mix(in srgb, var(--surface) 80%, transparent); color: var(--text-muted); }
+.maplibregl-ctrl-attrib a { color: var(--text-muted); }
+.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact { margin: 0 calc(var(--sp-2) + env(safe-area-inset-right, 0px)) var(--sp-2) 0; }
+.maplibregl-ctrl-attrib-button { opacity: .5; }
 
 .mapbtns {
   position: absolute; z-index: 500;
@@ -159,7 +174,9 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 #btn-locate.on svg { fill: currentColor; }
 
 /* pins */
-.pin { background: none; border: 0; display: grid; place-items: center; }
+.pin { width: 30px; height: 30px; display: grid; place-items: center; cursor: pointer; }
+.pin:focus-visible { outline: none; }
+.pin:focus-visible .pin-b { box-shadow: 0 0 0 3px var(--accent); }
 .pin-b {
   position: relative;
   width: 26px; height: 26px; border-radius: 50%;

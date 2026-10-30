@@ -1,12 +1,13 @@
 // Pour Decisions service worker: keeps the app usable on patchy signal.
 // App files: served from cache, refreshed in the background.
-// Map tiles: cached as you browse, so areas you've already looked at still draw offline.
-const APP = "pd-app-v3";
-const TILES = "pd-tiles-v1";
-const TILE_LIMIT = 600;
+// Map: tiles, fonts and icons are cached as you browse, so areas you've already looked at
+// still draw offline. The style file is refreshed in the background so tile versions stay current.
+const APP = "pd-app-v4";
+const TILES = "pd-tiles-v2";
+const TILE_LIMIT = 1500;
 const SHELL = [
   "./", "index.html", "app.css", "app.js", "data.js",
-  "vendor/leaflet.js", "vendor/leaflet.css", "manifest.webmanifest",
+  "vendor/maplibre-gl.js", "vendor/maplibre-gl.css", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",
 ];
 
@@ -30,7 +31,7 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
 
-  if (url.hostname === "tile.openstreetmap.org") {
+  if (url.hostname === "tiles.openfreemap.org" && !url.pathname.startsWith("/styles/")) {
     e.respondWith(caches.open(TILES).then(async (c) => {
       const hit = await c.match(req);
       if (hit) return hit;
@@ -43,7 +44,8 @@ self.addEventListener("fetch", (e) => {
 
   const sameOrigin = url.origin === self.location.origin;
   const isFont = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
-  if (!sameOrigin && !isFont) return;
+  const isMapStyle = url.hostname === "tiles.openfreemap.org";
+  if (!sameOrigin && !isFont && !isMapStyle) return;
 
   e.respondWith(caches.open(APP).then(async (c) => {
     const hit = await c.match(req, { ignoreSearch: sameOrigin && url.pathname.endsWith("/") });

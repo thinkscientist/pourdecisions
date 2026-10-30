@@ -355,39 +355,84 @@
   }
 
   // ── Map ──────────────────────────────────────────────────────────────────
-  const map = L.map("map", { zoomControl: false, attributionControl: true }).setView([37.775, -122.43], 13);
-  map.attributionControl.setPrefix(false);
-  // OpenStreetMap's standard tiles: free, no key. The CSS softens them and turns them dark at night.
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map);
-  // Small, glyph-free pins when the whole city is in view.
-  const zoomClass = () => $("#map").classList.toggle("zoomed-out", map.getZoom() < 14);
-  map.on("zoomend", zoomClass);
+  // OpenFreeMap vector tiles drawn by MapLibre: free, no key. The style's colours are
+  // replaced with the --map-* design tokens, so the map follows the app's palette and theme.
+  // (MapLibre zoom levels sit one below the old raster ones: 14.5 here is a few blocks across.)
+  const map = new maplibregl.Map({
+    container: "map",
+    style: "https://tiles.openfreemap.org/styles/positron",
+    center: [-122.43, 37.775], zoom: 12,
+    attributionControl: { compact: true },
+    dragRotate: false, pitchWithRotate: false, maxPitch: 0,
+  });
+  map.touchZoomRotate.disableRotation();
+  const anim = (ms) => (reducedMotion ? 0 : ms);
 
-  L.marker([TRIP.base.lat, TRIP.base.lng], {
-    icon: L.divIcon({
-      className: "", iconSize: [22, 22], iconAnchor: [11, 11],
-      html: '<span class="base-pin" title="Your SoMa base"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg></span>',
-    }),
-    interactive: false, keyboard: false, zIndexOffset: -1000,
-  }).addTo(map);
+  function applyMapTheme() {
+    const css = getComputedStyle(document.documentElement);
+    const t = (n) => css.getPropertyValue(n).trim();
+    const paint = (ids, prop, v) => ids.forEach((id) => { if (map.getLayer(id)) map.setPaintProperty(id, prop, v); });
+    paint(["background"], "background-color", t("--map-land"));
+    paint(["landuse_residential"], "fill-color", t("--map-land"));
+    paint(["water"], "fill-color", t("--map-water"));
+    paint(["waterway"], "line-color", t("--map-water"));
+    paint(["park", "landcover_wood"], "fill-color", t("--map-park"));
+    paint(["building"], "fill-color", t("--map-building"));
+    paint(["building"], "fill-outline-color", t("--map-building-line"));
+    paint(["road_area_pier"], "fill-color", t("--map-road"));
+    paint(["highway_path", "highway_minor", "road_pier"], "line-color", t("--map-road"));
+    paint(["highway_major_inner", "highway_major_subtle", "highway_motorway_inner", "highway_motorway_subtle",
+      "highway_motorway_bridge_inner", "tunnel_motorway_inner"], "line-color", t("--map-road-major"));
+    paint(["highway_major_casing", "highway_motorway_casing", "highway_motorway_bridge_casing", "tunnel_motorway_casing"],
+      "line-color", t("--map-road-casing"));
+    paint(["railway", "railway_dashline", "railway_transit", "railway_transit_dashline", "railway_service", "railway_service_dashline"],
+      "line-color", t("--map-rail"));
+    for (const l of map.getStyle().layers) {
+      if (l.type !== "symbol") continue;
+      const water = /water/.test(l.id);
+      map.setPaintProperty(l.id, "text-color", t(water ? "--map-water-label" : "--map-label"));
+      map.setPaintProperty(l.id, "text-halo-color", t(water ? "--map-water" : "--map-land"));
+    }
+    if (map.getLayer("me-acc")) {
+      map.setPaintProperty("me-acc", "circle-color", t("--accent"));
+      map.setPaintProperty("me-acc", "circle-stroke-color", t("--accent"));
+    }
+  }
+  map.on("load", () => {
+    // We know which city we're in: drop the big place names that sit on top of the pins.
+    for (const l of map.getStyle().layers) {
+      if (/^label_(city|state|country)/.test(l.id)) map.setLayoutProperty(l.id, "visibility", "none");
+    }
+    // Keep the map credit folded into its ⓘ button.
+    document.querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show");
+    applyMapTheme();
+    if (state.me) drawAccuracy();
+  });
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { if (map.isStyleLoaded()) applyMapTheme(); });
+
+  // Small, glyph-free pins when the whole city is in view.
+  const zoomClass = () => $("#map").classList.toggle("zoomed-out", map.getZoom() < 13);
+  map.on("zoom", zoomClass);
+
+  // A DOM element pinned to a spot on the map.
+  const pinAt = (lng, lat, el, show = true) => {
+    const m = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]);
+    if (show) m.addTo(map);
+    return m;
+  };
+  const html = (s) => { const d = document.createElement("div"); d.innerHTML = s.trim(); return d.firstChild; };
+
+  pinAt(TRIP.base.lng, TRIP.base.lat, html('<span class="base-pin" title="Your SoMa base"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg></span>'));
 
   const markers = {};
   // Pins pop in with a delay that grows with distance from SoMa, so they ripple outwards.
-  function pinIcon(p) {
-    const delay = Math.round(Math.min(450, meters(TRIP.base, p) / 22));
-    return L.divIcon({
-      className: `pin k-${p.kind}${p.approx ? " is-approx" : ""}`,
-      html: `<span class="pin-b" style="animation-delay:${delay}ms"><svg viewBox="0 0 24 24" aria-hidden="true">${KIND[p.kind].icon}</svg></span>`,
-      iconSize: [30, 30], iconAnchor: [15, 15],
-    });
-  }
   for (const p of PLACES) {
-    const m = L.marker([p.lat, p.lng], { icon: pinIcon(p), title: p.name, riseOnHover: true });
-    m.on("click", () => select(p.id, { from: "map" }));
-    markers[p.id] = m;
+    const delay = Math.round(Math.min(450, meters(TRIP.base, p) / 22));
+    const el = html(`<div class="pin k-${p.kind}${p.approx ? " is-approx" : ""}" role="button" tabindex="0" aria-label="${esc(p.name)}">
+      <span class="pin-b" style="animation-delay:${delay}ms"><svg viewBox="0 0 24 24" aria-hidden="true">${KIND[p.kind].icon}</svg></span></div>`);
+    el.addEventListener("click", (e) => { e.stopPropagation(); select(p.id, { from: "map" }); });
+    el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSheet(p.id); } });
+    markers[p.id] = { m: pinAt(p.lng, p.lat, el, false), el, on: false };
   }
 
   // Nearby shows the filtered places; Plan and Been show every pin and emphasise their own.
@@ -401,26 +446,26 @@
     const vis = visibleIds();
     const foc = focusIds();
     for (const p of PLACES) {
-      const m = markers[p.id];
-      if (vis && !vis.has(p.id) && state.sel !== p.id) { if (map.hasLayer(m)) map.removeLayer(m); continue; }
-      if (!map.hasLayer(m)) m.addTo(map);
-      const el = m.getElement();
+      const mk = markers[p.id];
+      const show = !vis || vis.has(p.id) || state.sel === p.id;
+      if (show !== mk.on) { if (show) mk.m.addTo(map); else mk.m.remove(); mk.on = show; }
+      if (!show) continue;
+      const el = mk.el;
       el.classList.toggle("is-visited", !!visited[p.id]);
       el.classList.toggle("is-closed", status(p, now).cls === "closed");
       el.classList.toggle("is-dim", !!foc && !foc.has(p.id));
       el.classList.toggle("is-sel", state.sel === p.id);
-      m.setZIndexOffset(state.sel === p.id ? 1000 : foc && foc.has(p.id) ? 500 : 0);
+      el.style.zIndex = state.sel === p.id ? 3 : foc && foc.has(p.id) ? 2 : 1;
     }
   }
   function fitTo(ids, opts = {}) {
-    const pts = [...ids].map((id) => byId[id]).filter(Boolean).map((p) => [p.lat, p.lng]);
-    if (opts.withBase) pts.push([TRIP.base.lat, TRIP.base.lng]);
+    const pts = [...ids].map((id) => byId[id]).filter(Boolean).map((p) => [p.lng, p.lat]);
+    if (opts.withBase) pts.push([TRIP.base.lng, TRIP.base.lat]);
     if (!pts.length) return;
-    if (opts.instant || reducedMotion) {
-      if (pts.length === 1) map.setView(pts[0], 16, { animate: false });
-      else map.fitBounds(pts, { padding: [36, 36], maxZoom: 16, animate: false });
-    } else if (pts.length === 1) map.flyTo(pts[0], 16, { duration: 0.6 });
-    else map.flyToBounds(pts, { padding: [36, 36], maxZoom: 16, duration: 0.6 });
+    const duration = opts.instant ? 0 : anim(700);
+    if (pts.length === 1) { map.flyTo({ center: pts[0], zoom: 15.5, duration }); return; }
+    const bounds = pts.reduce((b, pt) => b.extend(pt), new maplibregl.LngLatBounds(pts[0], pts[0]));
+    map.fitBounds(bounds, { padding: 40, maxZoom: 15.5, duration });
   }
   function fitCurrent(instant) {
     const foc = focusIds();
@@ -431,7 +476,8 @@
   function select(id, { from, pan } = {}) {
     state.sel = id;
     const p = byId[id];
-    if (from === "map" || pan) map.panTo([p.lat, p.lng], { animate: true });
+    // Nudge the pin above centre so the preview card doesn't cover it.
+    if (from === "map" || pan) map.easeTo({ center: [p.lng, p.lat], offset: [0, -30], duration: anim(450) });
     renderAll();
     if (from === "map") {
       document.querySelector(`.view:not([hidden]) [data-id="${id}"]`)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -440,23 +486,41 @@
   map.on("click", () => { if (state.sel && !sheetId) { state.sel = null; renderAll(); } });
 
   // ── Location ─────────────────────────────────────────────────────────────
-  let watchId = null, meMarker = null, meCircle = null, firstFix = true, lastRenderAt = null;
+  let watchId = null, meMarker = null, firstFix = true, lastRenderAt = null;
+  // The accuracy ring is a map layer so it scales with zoom: radius in pixels = metres / metres-per-pixel.
+  function drawAccuracy() {
+    if (!map.isStyleLoaded()) return;
+    const data = { type: "Feature", geometry: { type: "Point", coordinates: [state.me.lng, state.me.lat] } };
+    const r0 = (state.me.acc * 512) / (40075016.686 * Math.cos((state.me.lat * Math.PI) / 180));
+    const radius = ["interpolate", ["exponential", 2], ["zoom"], 0, r0, 22, r0 * 2 ** 22];
+    if (!map.getSource("me")) {
+      const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+      map.addSource("me", { type: "geojson", data });
+      map.addLayer({ id: "me-acc", type: "circle", source: "me", paint: {
+        "circle-radius": radius, "circle-color": accent, "circle-opacity": 0.08,
+        "circle-stroke-color": accent, "circle-stroke-width": 1, "circle-stroke-opacity": 0.35, "circle-pitch-alignment": "map",
+      } });
+    } else {
+      map.getSource("me").setData(data);
+      map.setPaintProperty("me-acc", "circle-radius", radius);
+    }
+  }
   function startWatch(center) {
     if (!("geolocation" in navigator)) { toast("This browser can't share your location."); return; }
     $("#btn-locate").classList.add("on");
-    if (watchId != null) { if (center && state.me) map.setView([state.me.lat, state.me.lng], Math.max(map.getZoom(), 15)); return; }
+    if (watchId != null) {
+      if (center && state.me) map.flyTo({ center: [state.me.lng, state.me.lat], zoom: Math.max(map.getZoom(), 14.5), duration: anim(600) });
+      return;
+    }
     firstFix = true;
     watchId = navigator.geolocation.watchPosition((pos) => {
       state.me = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
-      const ll = [state.me.lat, state.me.lng];
-      if (!meMarker) {
-        const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#C0362C";
-        meCircle = L.circle(ll, { radius: state.me.acc, color: accent, weight: 1, fillOpacity: 0.08, interactive: false }).addTo(map);
-        meMarker = L.marker(ll, { icon: L.divIcon({ className: "", html: '<div class="me-dot"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }), interactive: false, zIndexOffset: 2000 }).addTo(map);
-      } else { meMarker.setLatLng(ll); meCircle.setLatLng(ll).setRadius(state.me.acc); }
+      if (!meMarker) meMarker = pinAt(state.me.lng, state.me.lat, html('<div class="me-dot"></div>'));
+      else meMarker.setLngLat([state.me.lng, state.me.lat]);
+      drawAccuracy();
       if (firstFix) {
         firstFix = false;
-        if (inSF()) map.setView(ll, 15, { animate: false });
+        if (inSF()) map.jumpTo({ center: [state.me.lng, state.me.lat], zoom: 14.5 });
         lastRenderAt = state.me; renderAll(); return;
       }
       // Re-sort once you've moved a block or so.
@@ -558,7 +622,7 @@
         $("#app").classList.toggle("map-big", state.mapBig);
         t.setAttribute("aria-pressed", String(state.mapBig));
         t.setAttribute("aria-label", state.mapBig ? "Show the list again" : "Make the map bigger");
-        setTimeout(() => map.invalidateSize(), 50);
+        setTimeout(() => map.resize(), 50);
         return;
       case "sheet-close": closeSheet(); return;
       case "btn-clear": confirmClear = true; renderAll(); return;
@@ -600,11 +664,11 @@
   // ── Boot ─────────────────────────────────────────────────────────────────
   renderAll();
   requestAnimationFrame(() => {
-    map.invalidateSize();
+    map.resize();
     if (!inSF()) fitCurrent(true); // a location fix that arrived first already centred the map
     zoomClass();
   });
-  window.addEventListener("resize", () => map.invalidateSize());
+  window.addEventListener("resize", () => map.resize());
   setInterval(renderAll, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) renderAll(); });
 

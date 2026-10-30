@@ -15,15 +15,15 @@ The look follows a small San Francisco design system; see [DESIGN.md](DESIGN.md)
 ## Notes on the data
 
 - Hours, dishes and warnings come from the trip guide. Where the guide gives no hours, the app shows none rather than guessing.
-- Pins are placed using OpenStreetMap data. For five places the guide gives only a neighbourhood and the map data has no match (Piglet & Co, Restaurant Naides, Dingles, Abacá, Fikscue). Their pins have a dashed outline and mark the neighbourhood only. **Walk** still finds the exact spot, because it uses the guide's own Google Maps search.
+- Pin positions come from OpenStreetMap data. For five places the guide gives only a neighbourhood and the map data has no match (Piglet & Co, Restaurant Naides, Dingles, Abacá, Fikscue). Their pins have a dashed outline and mark the neighbourhood only. **Walk** still finds the exact spot, because it uses the guide's own Google Maps search.
 - Your ticks are stored on your phone, in the browser's storage for this site. Clearing the browser's site data erases them, so use "Copy list" on the Been tab if you want a backup.
 - To preview a trip day before you go, add `?now=2026-10-31T10:30` to the URL. It sets the clock to that San Francisco time.
 
 ## Running it
 
-It's a static site with no build step: `index.html`, `app.css`, `app.js` and `data.js`, plus Leaflet in `vendor/`.
+It's a static site with no build step: `index.html`, `app.css`, `app.js` and `data.js`, plus MapLibre GL in `vendor/`, which draws the map.
 
 - Locally: `python3 -m http.server`, then open http://localhost:8000.
 - On your phone: it needs to be served over HTTPS so that location works. Any static host will do: GitHub Pages, Netlify, Cloudflare Pages or Vercel.
 
-Map tiles © OpenStreetMap contributors.
+The map is [OpenFreeMap](https://openfreemap.org): free vector tiles with no key or account, built from OpenStreetMap data. The app recolours it with its own design tokens. Map data © OpenStreetMap contributors, © OpenMapTiles.

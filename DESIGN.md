@@ -20,6 +20,10 @@ Rules:
 - Kind colours (coffee, eat, drink) appear only as dots, map pins and the selected filter chip.
 - Status is shown as coloured text, not badges. Closed and "opens later" are muted grey, so they don't compete with what's open.
 
+## Map
+
+The map is OpenFreeMap's vector "Positron" style, recoloured at load time from the `--map-*` tokens. Light mode is fog-grey land, white streets, a bay-blue wash for water and a cypress wash for parks. Dark mode is the bay at night. City, state and country names are hidden so they don't sit on the pins. Pins use the kind colours, your position uses the accent, and the SoMa base is a small dark home marker.
+
 ## Type
 
 - **Bricolage Grotesque** for the wordmark, the place name in the details sheet and the day titles. Nothing else uses it.
