@@ -190,7 +190,7 @@
   function renderClock(now) {
     const el = $("#clock");
     el.hidden = !now.pinned;
-    if (now.pinned) el.textContent = `Preview: ${dayLabel(now.date)}, ${fmtTime(now.mins)}`;
+    if (now.pinned) el.innerHTML = `<span>Preview</span><span>${esc(dayLabel(now.date))}, ${fmtTime(now.mins)}</span>`;
   }
 
   // ── Nearby ───────────────────────────────────────────────────────────────

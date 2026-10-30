@@ -180,8 +180,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .handle:hover::before, .drawer.dragging .handle::before { background: var(--text-muted); width: 42px; }
 .handle:focus-visible { outline: none; }
 .handle:focus-visible::before { background: var(--accent); }
-/* The brand lockup: the one place the display face is set large. */
-.lockup { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+/* The brand row: the wordmark on the left (the one place the display face is set large),
+   the tagline right-aligned in the space opposite, both sitting on the same baseline. */
 .wordmark {
   font: 800 var(--fs-brand)/0.95 var(--font-display);
   font-variation-settings: "opsz" 72;
@@ -189,11 +189,14 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   color: var(--text);
 }
 .wordmark::after { content: "."; color: var(--accent); margin-left: .02em; }
-.tagline {
-  font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--text-muted);
+.tagline, .clock {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 2px; padding-bottom: 2px;
+  font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; line-height: 1.15;
+  color: var(--text-muted); text-align: right; white-space: nowrap;
 }
-.clock { padding-bottom: 2px; font-size: var(--fs-sm); color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.clock { color: var(--accent); }
+.clock:not([hidden]) ~ .tagline, .tagline:has(~ .clock:not([hidden])) { display: none; } /* previewing: the label takes the tagline's place */
+
 
 /* ── Map ───────────────────────────────────────────────────────────────── */
 .mapwrap { position: absolute; inset: 0; z-index: 1; padding-top: var(--safe-top); }
@@ -566,6 +569,9 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 @media (max-width: 374px) {
   :root { --walk-col: 56px; --ctl-col: 76px; }
   .row-main { column-gap: var(--sp-2); }
+  .brand { flex-wrap: wrap; row-gap: 6px; }
+  .tagline, .clock { flex-basis: 100%; flex-direction: row; align-items: center; justify-content: flex-start; gap: .5em; text-align: left; }
+  .tagline > span + span::before { content: "· "; }
   .filters { flex-wrap: wrap; }
   .search { flex-basis: 100%; }
   .kinds { flex: 1; }
