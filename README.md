@@ -15,8 +15,8 @@ The look follows a small San Francisco design system; see [DESIGN.md](DESIGN.md)
 ## Notes on the data
 
 - Hours, dishes and warnings come from the trip guide. Where the guide gives no hours, the app shows none rather than guessing.
-- Pins are placed using OpenStreetMap data. For five places the guide gives only a neighbourhood and the map data has no match (Piglet & Co, Restaurant Naides, Dingles, Abacá, Fikscue). Their pins have a dashed outline and mark the neighbourhood only. **Walk there** still finds the exact spot, because it uses the guide's own Google Maps search.
-- Your ticks are stored on your phone, in the browser's storage for this site. Clearing the browser's site data erases them, so use "Copy my list" if you want a backup.
+- Pins are placed using OpenStreetMap data. For five places the guide gives only a neighbourhood and the map data has no match (Piglet & Co, Restaurant Naides, Dingles, Abacá, Fikscue). Their pins have a dashed outline and mark the neighbourhood only. **Walk** still finds the exact spot, because it uses the guide's own Google Maps search.
+- Your ticks are stored on your phone, in the browser's storage for this site. Clearing the browser's site data erases them, so use "Copy list" on the Been tab if you want a backup.
 - To preview a trip day before you go, add `?now=2026-10-31T10:30` to the URL. It sets the clock to that San Francisco time.
 
 ## Running it
