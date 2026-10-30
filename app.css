@@ -74,6 +74,8 @@
   --dur-fast: 150ms;   /* colour and press feedback */
   --dur-base: 240ms;   /* things entering */
   --dur-slow: 380ms;   /* springy confirmations */
+  --dur-list: 420ms;   /* a row rising into a list */
+  --stagger: 45ms;     /* gap between rows rising in */
   color-scheme: light;
 }
 
@@ -201,6 +203,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   animation: pin-in var(--dur-slow) var(--ease-spring) backwards;
 }
 @keyframes pin-in { from { transform: scale(0); opacity: 0; } }
+.pin.is-leaving .pin-b { animation: pin-out 240ms ease-in forwards; animation-delay: 0s !important; }
+@keyframes pin-out { to { transform: scale(0); opacity: 0; } }
 .pin-b svg { width: 14px; height: 14px; stroke-width: 2.2; }
 .pin.is-closed .pin-b { filter: saturate(.2); opacity: .7; }
 .pin.is-visited .pin-b::after {
@@ -270,9 +274,11 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   display: inline-flex; align-items: center; gap: 6px;
   border: 1px solid var(--line); background: transparent; color: var(--text);
   border-radius: var(--r-pill); padding: 0 10px; height: 36px; font-size: var(--fs-sm); white-space: nowrap;
-  transition: background-color var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast), transform var(--dur-fast);
+  transition: background-color var(--dur-base), border-color var(--dur-base), color var(--dur-base), transform var(--dur-fast);
 }
-.chip .dot { transition: background-color var(--dur-fast); }
+.chip[aria-pressed="true"] { animation: chip-on var(--dur-slow) var(--ease-spring); }
+@keyframes chip-on { from { transform: scale(.9); } }
+.chip .dot { transition: background-color var(--dur-base); }
 .chip:active, .btn:active, .mapbtn:active, .link:active { transform: scale(.96); }
 .chip[aria-pressed="true"] { background: var(--k); border-color: var(--k); color: #fff; }
 .chip[aria-pressed="true"] .dot { background: #fff; }
@@ -295,8 +301,10 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .row-sub { font-size: var(--fs-sm); color: var(--text-muted); padding-left: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row.is-sel .row-name { color: var(--accent); }
 .row-name { transition: color var(--dur-fast); }
-.row.enter { animation: rise-in var(--dur-base) var(--ease-out) backwards; animation-delay: calc(var(--n, 0) * 24ms); }
-@keyframes rise-in { from { opacity: 0; transform: translateY(6px); } }
+.row.enter { animation: rise-in var(--dur-list) var(--ease-out) backwards; animation-delay: calc(var(--n, 0) * var(--stagger)); }
+@keyframes rise-in { from { opacity: 0; transform: translateY(14px); } }
+.list.leaving .row { animation: row-out 180ms ease-in forwards; }
+@keyframes row-out { to { opacity: 0; transform: translateY(-6px); } }
 .row.is-visited .row-name { color: var(--text-muted); font-weight: 400; }
 
 .st { font-weight: 700; }

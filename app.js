@@ -462,7 +462,23 @@
     for (const p of PLACES) {
       const mk = markers[p.id];
       const show = !vis || vis.has(p.id) || state.sel === p.id;
-      if (show !== mk.on) { if (show) mk.m.addTo(map); else mk.m.remove(); mk.on = show; }
+      if (show !== mk.on) {
+        mk.on = show;
+        clearTimeout(mk.leave);
+        if (show) {
+          // Ripple in from the middle of the map you're looking at.
+          if (map.loaded()) {
+            const a = map.project([p.lng, p.lat]), c = map.project(map.getCenter());
+            mk.el.firstElementChild.style.animationDelay = `${Math.round(Math.min(420, Math.hypot(a.x - c.x, a.y - c.y) * 1.4))}ms`;
+          }
+          mk.el.classList.remove("is-leaving"); // swapping back to the pop-in animation replays it
+          if (!mk.inMap) { mk.m.addTo(map); mk.inMap = true; }
+        } else {
+          // Shrink away, then leave the map.
+          mk.el.classList.add("is-leaving");
+          mk.leave = setTimeout(() => { mk.m.remove(); mk.inMap = false; mk.el.classList.remove("is-leaving"); }, reducedMotion ? 0 : 240);
+        }
+      }
       if (!show) continue;
       const el = mk.el;
       el.classList.toggle("is-visited", !!visited[p.id]);
@@ -607,6 +623,20 @@
     fx.list = false; fx.tick = null;
   }
 
+  // A filter change plays in two beats: the button and pins react straight away and the
+  // old rows fade out; then the new rows rise in one after another.
+  let swapTimer = null;
+  function changeFilter() {
+    document.querySelectorAll(".kinds .chip").forEach((b) => b.setAttribute("aria-pressed", String(state.kinds.has(b.dataset.kind))));
+    renderMarkers(sfNow());
+    const list = $("#list"), panel = $("#panel");
+    clearTimeout(swapTimer);
+    const swap = () => { list.classList.remove("leaving"); panel.scrollTop = 0; fx.list = true; renderAll(); };
+    if (reducedMotion || !list.children.length) { swap(); return; }
+    list.classList.add("leaving");
+    swapTimer = setTimeout(swap, 180);
+  }
+
   // ── Events ───────────────────────────────────────────────────────────────
   document.addEventListener("click", (e) => {
     const t = e.target.closest("button, a");
@@ -616,7 +646,7 @@
     if (t.dataset.kind) {
       const k = t.dataset.kind;
       if (state.kinds.has(k)) state.kinds.delete(k); else state.kinds.add(k);
-      fx.list = true; saveUi(); renderAll(); return;
+      saveUi(); changeFilter(); return;
     }
     if (t.dataset.day) {
       if (state.day === t.dataset.day) return;
