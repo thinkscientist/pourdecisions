@@ -26,3 +26,7 @@ It's a static site with no build step: `index.html`, `app.css`, `app.js` and `da
 - On your phone: it needs to be served over HTTPS so that location works. Any static host will do: GitHub Pages, Netlify, Cloudflare Pages or Vercel.
 
 The map is [OpenFreeMap](https://openfreemap.org): free vector tiles with no key or account, built from OpenStreetMap data. The app recolours it with its own design tokens. Map data © OpenStreetMap contributors, © OpenMapTiles.
+
+## Licence
+
+The app's code is released under the [MIT licence](LICENSE). That covers the code only. The venue information in `data.js` is drawn from a third-party trip guide, the venue photos belong to the venues (they load from their own websites), and MapLibre GL JS in `vendor/` keeps its own BSD licence. The app isn't affiliated with any venue; to have a photo or listing removed, open an issue.

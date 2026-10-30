@@ -239,6 +239,7 @@
           <h2>Your plan is empty</h2>
           <p>Tap <span class="pill-demo">${plusSvg}Add</span> next to any place in Nearby. It'll show up here, closest first, and you can tick it off once you've been.</p>
           <button type="button" class="btn small" data-tab="explore">Browse nearby</button>
+          <button type="button" class="link quiet about-link" data-about>About this app</button>
         </div>`;
       return;
     }
@@ -257,6 +258,7 @@
         ${confirmClear
           ? `<span>Clear your plan and ticks? <button type="button" class="link" id="btn-clear-yes">Clear</button> · <button type="button" class="link quiet" id="btn-clear-no">Keep</button></span>`
           : `<button type="button" class="link quiet" id="btn-clear">Start over</button>`}
+        <button type="button" class="link quiet" data-about>About</button>
       </div>`;
     if ($("#togo-list")) enterRows($("#togo-list"));
   }
@@ -264,7 +266,7 @@
   // ── Sheet (place details) ────────────────────────────────────────────────
   let sheetId = null;
   function renderSheet(now) {
-    if (!sheetId) return;
+    if (!sheetId || sheetId === ABOUT) return; // the About page doesn't change, so it renders once
     const p = byId[sheetId];
     const st = status(p, now);
     const v = !!visited[p.id], inPlan = !!planned[p.id];
@@ -325,8 +327,37 @@
       <a class="btn primary" href="${gmapsWalk(p)}" target="_blank" rel="noopener">${walkSvg}Walk</a>
       <a class="btn" href="${gmapsSearch(p)}" target="_blank" rel="noopener">${mapSvg}Google Maps</a>`;
   }
+  // ── About ────────────────────────────────────────────────────────────────
+  const ABOUT = "about";
+  const REPO = "https://github.com/thinkscientist/pourdecisions";
+  function renderAbout() {
+    $("#sheet").className = "sheet";
+    $("#sheet-body").innerHTML = `
+      <div><h2 class="d-name" id="sheet-title">About Pour Decisions</h2>
+        <div class="d-meta">A free personal project for walking around San Francisco, 31 Oct – 3 Nov 2026.</div></div>
+      <div class="d-sec"><h3>Check before you go</h3>
+        <p>Hours, closures and dishes come from a guide prepared on 30 October 2026 and can change, especially around holidays. Check the venue's own site or Google Maps before you set off. Nothing here is a reservation.</p></div>
+      <div class="d-sec"><h3>Not affiliated</h3>
+        <p>This app isn't affiliated with or endorsed by any of the places listed. Photos belong to the venues and load from their own websites. To have a photo or listing removed, <a class="link" href="${REPO}/issues" target="_blank" rel="noopener">open an issue on GitHub</a>.</p></div>
+      <div class="d-sec"><h3>Your privacy</h3>
+        <p>No accounts, tracking or analytics. Your location is used only on your phone, to sort places by distance, and your plan is saved only in this browser. Loading the map (OpenFreeMap), fonts (Google Fonts) and venue photos contacts those services, which see your IP address like any website.</p></div>
+      <div class="d-sec"><h3>Credits and licence</h3>
+        <p>Map data © <a class="link" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, tiles by <a class="link" href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> and OpenMapTiles, drawn with MapLibre GL JS. The app's code is <a class="link" href="LICENSE" target="_blank" rel="noopener">MIT licensed</a> and provided as is, without warranty. <a class="link" href="${REPO}" target="_blank" rel="noopener">Source on GitHub</a>.</p></div>`;
+    $("#sheet-actions").innerHTML = "";
+  }
+  function openAbout() {
+    clearTimeout(closeTimer);
+    $("#sheet").classList.remove("is-closing"); $("#scrim").classList.remove("is-closing");
+    sheetId = ABOUT; lastFocus = document.activeElement;
+    renderAbout();
+    $("#peek").hidden = true; $("#scrim").hidden = false; $("#sheet").hidden = false; $("#sheet-actions").hidden = true;
+    $("#sheet-body").scrollTop = 0;
+    $("#sheet-close").focus({ preventScroll: true });
+  }
+
   let lastFocus = null, closeTimer = null;
   function openSheet(id) {
+    $("#sheet-actions").hidden = false;
     clearTimeout(closeTimer);
     $("#sheet").classList.remove("is-closing"); $("#scrim").classList.remove("is-closing");
     $("#sheet").style.transform = ""; $("#sheet").style.transition = "";
@@ -744,6 +775,7 @@
     if (t.dataset.plan) { e.preventDefault(); togglePlan(t.dataset.plan); return; }
     if (t.dataset.been) { e.preventDefault(); toggleVisited(t.dataset.been); return; }
     if (t.dataset.open) { openSheet(t.dataset.open); return; }
+    if ("about" in t.dataset) { openAbout(); return; }
     if (t.dataset.kind) {
       const k = t.dataset.kind;
       if (state.kinds.has(k)) state.kinds.delete(k); else state.kinds.add(k);

@@ -403,6 +403,9 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .pill-demo svg { width: 11px; height: 11px; stroke-width: 2.8; }
 .been-tools { display: flex; gap: var(--sp-4); align-items: center; flex-wrap: wrap; margin-top: var(--sp-5); font-size: var(--fs-sm); }
 .link.quiet { color: var(--text-muted); font-weight: 400; }
+.list-foot { text-align: center; margin: var(--sp-5) 0 0; font-size: var(--fs-sm); }
+.about-link { font-size: var(--fs-sm); margin-top: var(--sp-2); }
+.d-sec .link { font-weight: 400; text-decoration: underline; text-underline-offset: 2px; }
 
 /* ── Buttons ───────────────────────────────────────────────────────────── */
 .btn {
