@@ -466,6 +466,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   width: 32px; height: 32px; border-radius: 50%; border: 0; background: var(--surface-2); display: grid; place-items: center; color: var(--text-muted);
 }
 .close svg { width: 16px; height: 16px; }
+.close { z-index: 1; box-shadow: 0 1px 6px rgb(0 0 0 / .25); }
 .sheet-body {
   overflow-y: auto; overscroll-behavior: contain;
   padding: var(--sp-2) var(--gutter-r) var(--sp-4) var(--gutter-l);
@@ -478,6 +479,28 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 }
 .sheet-actions .btn { padding-inline: var(--sp-2); }
 
+/* Venue photos: a swipeable strip at the top of the details sheet. */
+.photos { margin-inline: calc(-1 * var(--gutter-l)) calc(-1 * var(--gutter-r)); margin-top: var(--sp-1); }
+.photo-strip {
+  display: flex; gap: var(--sp-2); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  padding-inline: var(--gutter-l) var(--gutter-r); scroll-padding-inline: var(--gutter-l);
+  overscroll-behavior-x: contain;
+}
+.photo-strip::-webkit-scrollbar { display: none; }
+.photo-strip img {
+  flex: none; width: 82%; height: 200px; object-fit: cover; border-radius: var(--r-md);
+  scroll-snap-align: start; background: var(--surface-2);
+  opacity: 0; transition: opacity var(--dur-list) var(--ease-out);
+}
+.photo-strip img.loaded { opacity: 1; }
+.photos.single .photo-strip img { width: 100%; }
+.photo-credit {
+  display: inline-block; margin: 6px var(--gutter-r) 0 var(--gutter-l);
+  font-size: var(--fs-xs); color: var(--text-muted); text-decoration: none;
+}
+.photo-credit::after { content: " ↗"; }
+.photos-link { font-size: var(--fs-sm); align-self: flex-start; text-decoration: none; }
+.photos ~ div .d-name, .photos + div .d-name { margin-right: 0; }
 .d-name { font: 800 var(--fs-xl)/1.1 var(--font-display); letter-spacing: -.02em; margin: var(--sp-1) 44px 0 0; text-wrap: balance; }
 .d-meta { color: var(--text-muted); font-size: var(--fs-sm); margin-top: var(--sp-1); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .d-meta .st { font-size: var(--fs-sm); }

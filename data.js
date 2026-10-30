@@ -551,3 +551,82 @@ for (const p of window.PLACES) {
   if (MAP_ADDR[p.id]) { p.addr = MAP_ADDR[p.id]; p.addrFromMap = true; }
   p.approx = APPROX.has(p.id);
 }
+
+// ── Photos ───────────────────────────────────────────────────────────────
+// Photos from each venue's own website (picked by hand: the room, the storefront or the
+// food; no logos or product shots). Loaded from the venue's site, credited and linked back.
+// Places not listed here have no usable photo on their site.
+const PHOTOS = {
+  "coffee-movement": { site: "https://www.thecoffeemovement.com/", urls: [
+    "https://images.squarespace-cdn.com/content/v1/5d99242cc90fc90b382e54fa/3d52a306-f862-4e72-9df7-b8d36d768236/Background%402x.png?format=1000w",
+  ] },
+  "sightglass-soma": { site: "https://sightglasscoffee.com/", urls: [
+    "https://sightglasscoffee.com/cdn/shop/files/7th_Street-min.jpg?v=1757985881&width=1296",
+  ] },
+  "linea": { site: "https://lineacaffe.com", urls: [
+    "https://lineacaffe.com/wp-content/uploads/2026/02/Linea_Caffe_Mariposa_St_Caffe_2560px_drkr_crop2.jpg",
+    "https://lineacaffe.com/wp-content/uploads/2024/09/drink-on-counter-scaled-1.jpg",
+  ] },
+  "state-bird": { site: "https://statebirdsf.com/", urls: [
+    "https://images.squarespace-cdn.com/content/v1/6500a081b4e5021dc4f378b1/a3401f4d-422a-4e20-8eef-ecafbf4d7c57/StateBird-GroupDining.jpg?format=1000w",
+  ] },
+  "maria-isabel": { site: "https://www.mariaisabelsf.com/", urls: [
+    "https://images.getbento.com/accounts/a47f8aa6680eb107ee51f5b129ec052f/media/images/66220IBP_0231-2.jpg?w=1200&fit=crop&auto=compress,format&cs=origin&crop=focalpoint&fp-x=0.5&fp-y=0.5",
+    "https://images.getbento.com/accounts/a47f8aa6680eb107ee51f5b129ec052f/media/images/49628IBP_0161.jpg?w=1200&fit=crop&auto=compress,format&cs=origin&crop=focalpoint&fp-x=0.5&fp-y=0.5",
+    "https://images.getbento.com/accounts/a47f8aa6680eb107ee51f5b129ec052f/media/images/68528IBP_0144-2.jpg?w=1000&fit=max&auto=compress,format&cs=origin&h=1000",
+  ] },
+  "zuni": { site: "https://zunicafe.com/", urls: [
+    "https://zunicafe.com/wp-content/uploads/zuni-8-1400x934.jpg",
+    "https://zunicafe.com/wp-content/uploads/Zuni-Favorites-6-1400x934.jpg",
+    "https://zunicafe.com/wp-content/uploads/zuni-gallery-1-2-1400x934.jpg",
+  ] },
+  "breadbelly": { site: "https://www.breadbellysf.com/", urls: [
+    "https://images.squarespace-cdn.com/content/v1/5d045fd8b3f90a000127e189/6cff2808-7c07-41b4-9a58-1ab7a84859b5/2019_Eater_BreadBelly_alaw_021.0.jpg?format=1000w",
+    "https://images.squarespace-cdn.com/content/v1/5d045fd8b3f90a000127e189/a675f6c1-800f-4b4c-a682-1f09ca3ed7a8/breadbelly-delivered-thirdplace.jpg?format=1000w",
+    "https://images.squarespace-cdn.com/content/v1/5d045fd8b3f90a000127e189/1729739295358-N4TOUF9WMOO3GYC931NV/image-asset.jpeg?format=1000w",
+  ] },
+  "cinderella": { site: "http://www.cinderellabakery.com/", urls: [
+    "https://cinderellabakery.com/wp-content/uploads/2018/03/Cinderella_Bakery_03_03_18_077-1024x513.jpg",
+  ] },
+  "swan": { site: "https://swanoysterdepot.net/", urls: [
+    "https://swanoysterdepot.net/public/media/atmosphere-and-crowd.jpg",
+    "https://swanoysterdepot.net/public/media/swan-oyster-depot-banner-3.png",
+  ] },
+  "delfina": { site: "https://www.delfinasf.com/", urls: [
+    "https://images.squarespace-cdn.com/content/v1/62ab2a06319a4a44fe52fc81/1783954076840-M2K81B7M3V223SCLO2ZJ/Delfina+James+Booth_013+Photo.jpg?format=1000w",
+    "https://images.squarespace-cdn.com/content/v1/62ab2a06319a4a44fe52fc81/1783954092042-AN83VHPYZU2BJBPSCNI2/Delfina+Francobolli_010+Photo.jpg?format=1000w",
+    "https://images.squarespace-cdn.com/content/v1/62ab2a06319a4a44fe52fc81/1783954163817-1AKPTQIZFHW6QSDI18NW/Delfina+Whole+Fish_003+Photo.jpg?format=1000w",
+  ] },
+  "rintaro": { site: "https://izakayarintaro.com/", urls: [
+    "https://izakayarintaro.com/user/themes/rintaro/img/rintaro-interior.jpg",
+  ] },
+  "prubechu": { site: "https://www.prubechu.com/", urls: [
+    "https://images.squarespace-cdn.com/content/v1/64c463a66ca49752314ba523/1722544051674-7S3Z76H6CN7UI6GIHS09/prubechu-3-2+%281%29.jpg?format=1000w",
+    "https://images.squarespace-cdn.com/content/v1/64c463a66ca49752314ba523/1722544047270-5JWP8BLI8RRP151HLT69/prubechu-8-2.jpg?format=1000w",
+    "https://images.squarespace-cdn.com/content/v1/64c463a66ca49752314ba523/1722543648165-TEETH1U9VGJHSIFGMIQX/prubechu-44.jpg?format=1000w",
+  ] },
+  "bix": { site: "https://www.bixrestaurant.com/", urls: [
+    "https://bixrestaurant.com/wp-content/uploads/2019/09/home_diningbix.jpg",
+    "https://bixrestaurant.com/wp-content/uploads/2019/09/bixoutside1.jpg",
+  ] },
+  "dalida": { site: "https://www.dalidasf.com/", urls: [
+    "https://images.getbento.com/accounts/1959ac8819ed4c6dee691307a1622066/media/images/43830Dalida_Food_0163.jpg?w=1200&fit=crop&auto=compress,format&cs=origin&crop=focalpoint&fp-x=0.5&fp-y=0.5",
+    "https://images.getbento.com/accounts/1959ac8819ed4c6dee691307a1622066/media/images/5092Dalida_O6A9376.jpg?w=1200&fit=crop&auto=compress,format&cs=origin&crop=focalpoint&fp-x=0.5&fp-y=0.5",
+    "https://images.getbento.com/accounts/1959ac8819ed4c6dee691307a1622066/media/images/49785Dalida_O6A8509.jpg?w=1200&fit=crop&auto=compress,format&cs=origin&crop=focalpoint&fp-x=0.5&fp-y=0.5",
+  ] },
+  "mandalay": { site: "https://www.mandalaysf.com/", urls: [
+    "https://mandalaysf.com/wp-content/uploads/slider/cache/b2f15f80adb621712866c4a0ebb477c2/036R0264.jpg",
+    "https://mandalaysf.com/wp-content/uploads/slider/cache/358ba17d0637bb21209539341c6e7ad6/036R0196.jpg",
+  ] },
+  "kin-khao": { site: "https://www.kinkhao.com/", urls: [
+    "https://images.squarespace-cdn.com/content/v1/5f3da8a14ce3437904644ecf/6187d045-fe69-4480-bb70-9fa5b6c56904/Spread+of+Kin+Khao+Dishes+Including+Green+Curry+and+Namprik+Ong.jpeg?format=1000w",
+  ] },
+  "sohn": { site: "https://www.sohnsf.com/", urls: [
+    "https://images.squarespace-cdn.com/content/v1/684047fe6e7f3956c21a071e/252541e7-920b-4b86-81bc-664447b83d04/DSCF2946.jpg?format=1000w",
+    "https://images.squarespace-cdn.com/content/v1/684047fe6e7f3956c21a071e/c6270008-146b-423e-a792-b368d56c0856/Cathie+Hong_Sohn_14.jpg?format=1000w",
+  ] },
+  "beit-rima": { site: "https://beitrimasf.com/", urls: [
+    "https://beitrimasf.com/assets/images/pictures/IMG_6417.JPEG",
+  ] },
+};
+for (const p of window.PLACES) if (PHOTOS[p.id]) { p.photos = PHOTOS[p.id].urls; p.photoSite = PHOTOS[p.id].site; }

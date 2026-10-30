@@ -6,7 +6,7 @@ A phone-first web app for walking around San Francisco, 31 Oct – 3 Nov 2026. I
 
 - **Nearby.** A map, plus a list sorted by walking time from you (or from your SoMa base until you share your location). Each row shows the area and whether the place is open right now, in San Francisco time. You can filter by Coffee, Eat and Drink, and search by name, area or dish.
 - **Plan.** Your own list. Tap **+ Add** on any place in Nearby to add it. Plan shows what's still to go, nearest first, each with a **Been** button, and underneath, where you've been and when. You can also mark a place as been from its details page without planning it first.
-- **Place details.** What it is, what to order, warnings, hours for each trip day and the address. **Walk** opens Google Maps walking directions.
+- **Place details.** Photos from the venue's own website (18 places), what it is, what to order, warnings, hours for each trip day and the address. **Walk** opens Google Maps walking directions.
 - **Works like an app.** Add it to your home screen. It keeps working on patchy signal.
 
 The look follows a small San Francisco design system; see [DESIGN.md](DESIGN.md).

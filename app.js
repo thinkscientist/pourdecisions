@@ -276,8 +276,19 @@
     const tags = [p.book && "Book ahead", ...(p.tags || []).filter((t) => !/^book|reservations/i.test(t))].filter(Boolean);
     const anyHours = TRIP_DATES.some((date) => specFor(p, date));
 
+    // Photos from the venue's own site: a swipeable strip, the next one peeking in.
+    // Only the first loads straight away; a photo that fails to load quietly drops out.
+    const host = p.photoSite ? new URL(p.photoSite).hostname.replace(/^www\./, "") : "";
+    const photos = p.photos ? `
+      <div class="photos${p.photos.length === 1 ? " single" : ""}">
+        <div class="photo-strip">${p.photos.map((u, i) => `<img src="${esc(u)}" alt="${esc(p.name)}, photo ${i + 1} of ${p.photos.length}"
+          loading="${i ? "lazy" : "eager"}" decoding="async" referrerpolicy="no-referrer">`).join("")}</div>
+        <a class="photo-credit" href="${esc(p.photoSite)}" target="_blank" rel="noopener">Photos from ${esc(host)}</a>
+      </div>` : "";
+
     $("#sheet").className = `sheet k-${p.kind}`;
     $("#sheet-body").innerHTML = `
+      ${photos}
       <div>
         <h2 class="d-name" id="sheet-title">${esc(p.name)}</h2>
         <div class="d-meta"><i class="dot"></i>${KIND[p.kind].label} · ${esc(p.area)}${p.price ? ` · ${esc(p.price)}` : ""} · ${walkText(mins)} walk${inSF() ? "" : " from SoMa"}</div>
@@ -299,7 +310,17 @@
       </div>
       <div class="d-sec"><h3>Address</h3>
         <p class="addr">${esc(p.addr || p.area)}${p.approx ? " <small>· pin marks the neighbourhood</small>" : ""}</p>
-      </div>`;
+      </div>
+      ${p.photos ? "" : `<a class="link photos-link" href="${gmapsSearch(p)}" target="_blank" rel="noopener">See photos on Google Maps</a>`}`;
+    for (const img of $("#sheet-body").querySelectorAll(".photo-strip img")) {
+      const done = () => img.classList.add("loaded");
+      if (img.complete && img.naturalWidth) done(); else img.addEventListener("load", done, { once: true });
+      img.addEventListener("error", () => {
+        const wrap = img.closest(".photos");
+        img.remove();
+        if (!wrap.querySelector("img")) wrap.remove(); else wrap.classList.toggle("single", wrap.querySelectorAll("img").length === 1);
+      }, { once: true });
+    }
     $("#sheet-actions").innerHTML = `
       <a class="btn primary" href="${gmapsWalk(p)}" target="_blank" rel="noopener">${walkSvg}Walk</a>
       <a class="btn" href="${gmapsSearch(p)}" target="_blank" rel="noopener">${mapSvg}Google Maps</a>`;

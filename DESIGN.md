@@ -55,7 +55,7 @@ The map runs from the very top of the screen, under the status bar. The list is 
 - **Row:** coloured dot, name, walking time on the right, and one muted line (area · status). The same row is used everywhere. Its control on the right depends on the tab: **+ Add** / **✓ Added** in Nearby (added is an orange tint, not a solid fill, so a list of them stays calm), a green **✓ Been** button for places still to go in your plan, and a solid green tick for places you've been (tap to undo).
 - **Plan:** your own list. **To go** is sorted nearest first. **Been** sits underneath, latest first, with times. It starts empty, with a hint pointing at the Add button. On the map, places in your plan get an orange ring.
 - **Chip:** an outlined pill. When on, it fills with its kind colour. With no chips on, everything shows.
-- **Sheet:** title, a meta line, two toggles (**Add to plan** and **Mark as been**, so you can tick somewhere you wandered into), then only the sections that have content: notes, description, order, hours, address. Walk and Google Maps are pinned at the bottom.
+- **Sheet:** photos (when the venue's site has good ones), title, a meta line, two toggles (**Add to plan** and **Mark as been**, so you can tick somewhere you wandered into), then only the sections that have content: notes, description, order, hours, address. Walk and Google Maps are pinned at the bottom.
 
 ## Motion
 
@@ -80,3 +80,7 @@ The moments:
 - **Map camera:** it flies between areas when you switch days or tabs.
 - **Sheet:** it slides up to open and slides down to close. A swipe-down closes it from wherever your finger let go, and a short swipe springs back.
 - **Plan days:** the underline slides to the day you pick.
+
+## Photos
+
+Up to three photos per place, taken from the venue's own website and chosen by hand: the room, the storefront or the food. Logos, coffee-bag product shots, staff portraits and event posters are left out. They're loaded straight from the venue's site (not copied into this repo) and credited with a link back. On the details sheet they form a swipeable strip; the next photo peeks in so it's clear there's more. Only the first loads when the sheet opens, each fades in once loaded, and one that fails to load quietly drops out. Places without good photos on their site show a "See photos on Google Maps" link instead.
