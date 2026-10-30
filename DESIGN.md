@@ -32,7 +32,8 @@ The map fills the screen and runs up under the status bar. The list is a drawer 
 
 ## Type
 
-- **Bricolage Grotesque** for the wordmark, the place name in the details sheet and the Plan heading. Nothing else uses it.
+- **Bricolage Grotesque** for the wordmark (30px, extra bold, tightly spaced, `--fs-brand`) and the place name in the details sheet. Nothing else uses it, so the brand is the only big display type on the main screen.
+- **Brand lockup:** **Pour Decisions.** with the orange full stop, and under it a small spaced-capitals tagline, *COFFEE & FOOD · SAN FRANCISCO*. Headings inside the drawer (like "Your plan") stay at body size so nothing competes with it.
 - **Atkinson Hyperlegible** for everything else. It was designed for legibility, which helps when you're reading in sunlight while walking.
 - Scale: `--fs-xs` 12, `--fs-sm` 13, `--fs-md` 15, `--fs-lg` 18, `--fs-xl` 24. List rows use 15 for the name and 13 for the line under it.
 
