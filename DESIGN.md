@@ -1,0 +1,39 @@
+# Pour Decisions design system
+
+All tokens live at the top of `app.css`. Components use only the semantic tokens, never the raw palette. That way dark mode, which redefines the semantic tokens, just works.
+
+## Palette: San Francisco
+
+| Token | Light | Where it comes from | Used for |
+|---|---|---|---|
+| `--sf-bridge` | `#C0362C` | International Orange, Golden Gate Bridge | Accent: your location dot, the Walk button, the active tab, selection |
+| `--sf-fog-50…500` | `#F2F4F4` → `#66737A` | Karl the Fog | Page background, surfaces, lines, muted text |
+| `--sf-night` | `#13212B` | The bay after dark | Main text, and the dark-mode background family |
+| `--sf-sourdough` | `#8C5A2B` | Sourdough crust | Coffee |
+| `--sf-bay` | `#1D5C8A` | San Francisco Bay | Eat |
+| `--sf-dusk` | `#7A3E78` | Twin Peaks at dusk | Drink |
+| `--sf-cypress` | `#2D6A4A` | Presidio cypress | Open now, and "been here" ticks |
+| `--sf-poppy` | `#B86E00` | California poppy | Closing soon |
+
+Rules:
+- Orange is the only accent. Each screen uses it for one or two things at most.
+- Kind colours (coffee, eat, drink) appear only as dots, map pins and the selected filter chip.
+- Status is shown as coloured text, not badges. Closed and "opens later" are muted grey, so they don't compete with what's open.
+
+## Type
+
+- **Bricolage Grotesque** for the wordmark, the place name in the details sheet and the day titles. Nothing else uses it.
+- **Atkinson Hyperlegible** for everything else. It was designed for legibility, which helps when you're reading in sunlight while walking.
+- Scale: `--fs-xs` 12, `--fs-sm` 13, `--fs-md` 15, `--fs-lg` 18, `--fs-xl` 24. List rows use 15 for the name and 13 for the line under it.
+
+## Space and shape
+
+- Spacing: 4 / 8 / 12 / 16 / 24 (`--sp-1…5`). The side gutter is 16px, plus the safe-area inset where there is one.
+- Radii: 8 (small), 12 (cards, buttons), 18 (sheet), pill (search and chips).
+- Lists are plain rows separated by hairlines. White cards are used only for grouped stops in the Plan tab.
+
+## Components
+
+- **Row:** coloured dot, name, walking time on the right, and one muted line (area · status). The tick circle sits on the far right. The same row is used in Nearby, Plan and Been.
+- **Chip:** an outlined pill. When on, it fills with its kind colour. With no chips on, everything shows.
+- **Sheet:** title, a meta line, then only the sections that have content: notes, description, order, hours, address. Walk, Maps and Been here are pinned at the bottom.

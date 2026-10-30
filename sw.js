@@ -1,7 +1,7 @@
 // Pour Decisions service worker: keeps the app usable on patchy signal.
 // App files: served from cache, refreshed in the background.
 // Map tiles: cached as you browse, so areas you've already looked at still draw offline.
-const APP = "pd-app-v1";
+const APP = "pd-app-v2";
 const TILES = "pd-tiles-v1";
 const TILE_LIMIT = 600;
 const SHELL = [
