@@ -177,8 +177,9 @@
     }[control];
     return `<li class="row k-${p.kind}${v ? " is-visited" : ""}${state.sel === p.id ? " is-sel" : ""}${fx.tick === p.id ? " pop" : ""}" data-id="${p.id}">
       <button type="button" class="row-main" data-open="${p.id}">
-        <span class="row-top"><i class="dot"></i><span class="row-name">${name}</span><span class="row-walk">${walkText(mins)}</span></span>
+        <span class="row-top"><i class="dot"></i><span class="row-name">${name}</span></span>
         <span class="row-sub">${bits.join(" · ")}</span>
+        <span class="row-walk" aria-label="${walkText(mins)} walk">${walkSvg}${walkText(mins)}</span>
       </button>
       ${ctl}
     </li>`;
