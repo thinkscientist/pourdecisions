@@ -24,6 +24,10 @@ Rules:
 
 The map is OpenFreeMap's vector "Positron" style, recoloured at load time from the `--map-*` tokens. Light mode is fog-grey land, white streets, a bay-blue wash for water and a cypress wash for parks. Dark mode is the bay at night. City, state and country names are hidden so they don't sit on the pins. Pins use the kind colours, your position uses the accent, and the SoMa base is a small dark home marker.
 
+## Home-screen app
+
+When the app is opened from the home screen, iOS blurs a strip under the status bar. So in that mode the header row is hidden: the icon already names the app and the phone shows the time. The map runs up under the status bar, where the blur reads as a frosted edge. When the phone's clock isn't on San Francisco time, the SF time appears in the line above the list instead.
+
 ## Type
 
 - **Bricolage Grotesque** for the wordmark, the place name in the details sheet and the day titles. Nothing else uses it.

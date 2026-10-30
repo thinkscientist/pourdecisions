@@ -65,6 +65,7 @@
   --gutter-l: max(16px, env(safe-area-inset-left, 0px));
   --gutter-r: max(16px, env(safe-area-inset-right, 0px));
   --tab-h: 52px;
+  --safe-top: env(safe-area-inset-top, 0px);
 
   /* ── Motion ── */
   --ease-out: cubic-bezier(.2, .8, .2, 1);
@@ -138,7 +139,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 
 .top {
   display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3);
-  padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+  padding-top: calc(var(--safe-top) + 10px);
   padding-bottom: 10px;
   padding-left: var(--gutter-l); padding-right: var(--gutter-r);
 }
@@ -160,7 +161,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 
 .mapbtns {
   position: absolute; z-index: 500;
-  right: calc(var(--sp-3) + env(safe-area-inset-right, 0px)); top: var(--sp-3);
+  right: calc(var(--sp-3) + env(safe-area-inset-right, 0px)); top: calc(var(--safe-top-map, 0px) + var(--sp-3));
   display: flex; flex-direction: column; gap: var(--sp-2);
 }
 .mapbtn {
@@ -451,6 +452,15 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 @keyframes toast-out { to { opacity: 0; transform: translate(-50%, 6px); } }
 .toast button { background: none; border: 0; color: var(--accent); font-weight: 700; padding: 6px 8px; font-size: var(--fs-sm); }
 
+/* ── Home-screen app ──────────────────────────────────────────────────────
+   iOS blurs the strip under the status bar in home-screen apps. So there the header goes
+   (the icon names the app, the phone shows the time) and the map runs up under the
+   status bar, where the blur reads as a natural frosted edge. */
+.standalone .top { display: none; }
+.standalone .app { grid-template-rows: calc(36dvh + var(--safe-top)) 1fr auto; }
+.standalone .app.map-big { grid-template-rows: 1fr 0 auto; }
+.standalone .mapwrap { --safe-top-map: var(--safe-top); padding-top: var(--safe-top); }
+
 @media (min-width: 900px) {
   /* Desktop / tablet landscape: map left, list right */
   .app { grid-template-columns: 1fr 420px; grid-template-rows: auto 1fr auto; }
@@ -458,7 +468,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   .mapwrap { grid-row: 2; grid-column: 1; }
   .panel { grid-row: 2; grid-column: 2; border-top: 0; border-left: 1px solid var(--line); }
   .tabs { grid-column: 1 / -1; }
-  .app.map-big { grid-template-rows: auto 1fr auto; }
+  .app.map-big, .standalone .app, .standalone .app.map-big { grid-template-rows: auto 1fr auto; }
   .app.map-big .panel { display: block; }
   #btn-expand { display: none; }
   .sheet { left: auto; width: 420px; right: 0; }

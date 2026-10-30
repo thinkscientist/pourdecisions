@@ -2,6 +2,10 @@
 (() => {
   "use strict";
 
+  // Opened from the home screen? (iOS reports it on navigator; others via the display mode.)
+  const standalone = navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+  document.documentElement.classList.toggle("standalone", standalone);
+
   const PLACES = window.PLACES;
   const DAYS = window.DAYS;
   const TRIP = window.TRIP;
@@ -177,6 +181,13 @@
     </li>`;
   }
 
+  // True when the phone isn't on San Francisco time (e.g. still on the plane).
+  function phoneClockDiffers(now) {
+    const d = new Date();
+    const local = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return local !== now.date || Math.abs(d.getHours() * 60 + d.getMinutes() - now.mins) > 1;
+  }
+
   // ── Header clock ─────────────────────────────────────────────────────────
   function renderClock(now) {
     $("#clock").textContent = `${dayLabel(now.date)} · ${fmtTime(now.mins)}${now.pinned ? " (preview)" : ""}`;
@@ -191,14 +202,18 @@
     enterRows($("#list"));
     $("#list-empty").hidden = list.length > 0;
 
-    const hint = $("#lochint");
-    if (inSF()) hint.hidden = true;
-    else {
-      hint.hidden = false;
-      hint.innerHTML = state.me
-        ? "You're not in SF yet, so walking times are from SoMa."
-        : 'Walking times from SoMa. <button type="button" class="link" id="btn-locprompt">Use my location</button>';
+    const parts = [];
+    // The home-screen app has no header clock, so say the SF time here when it matters.
+    if (standalone && now.pinned) parts.push(`Previewing ${esc(dayLabel(now.date))}, ${fmtTime(now.mins)}.`);
+    else if (standalone && phoneClockDiffers(now)) parts.push(`It's ${fmtTime(now.mins)} ${esc(dayLabel(now.date))} in SF.`);
+    if (!inSF()) {
+      parts.push(state.me
+        ? "Walking times are from SoMa until you're in SF."
+        : 'Walking times from SoMa. <button type="button" class="link" id="btn-locprompt">Use my location</button>');
     }
+    const hint = $("#lochint");
+    hint.hidden = !parts.length;
+    hint.innerHTML = parts.join(" ");
   }
 
   // ── Plan ─────────────────────────────────────────────────────────────────
@@ -366,6 +381,9 @@
     dragRotate: false, pitchWithRotate: false, maxPitch: 0,
   });
   map.touchZoomRotate.disableRotation();
+  // In the home-screen app the map runs under the status bar: centre things below it.
+  const syncMapPadding = () => map.setPadding({ top: parseFloat(getComputedStyle($(".mapwrap")).paddingTop) || 0, bottom: 0, left: 0, right: 0 });
+  syncMapPadding();
   const anim = (ms) => (reducedMotion ? 0 : ms);
 
   function applyMapTheme() {
@@ -668,7 +686,7 @@
     if (!inSF()) fitCurrent(true); // a location fix that arrived first already centred the map
     zoomClass();
   });
-  window.addEventListener("resize", () => map.resize());
+  window.addEventListener("resize", () => { map.resize(); syncMapPadding(); });
   setInterval(renderAll, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) renderAll(); });
 
