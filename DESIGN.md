@@ -52,9 +52,10 @@ The map runs from the very top of the screen, under the status bar. The list is 
 
 ## Components
 
-- **Row:** coloured dot, name, walking time on the right, and one muted line (area · status). The tick circle sits on the far right. The same row is used in Nearby, Plan and Been.
+- **Row:** coloured dot, name, walking time on the right, and one muted line (area · status). The same row is used everywhere. Its control on the right depends on the tab: **+ Add** / **✓ Added** in Nearby (added is an orange tint, not a solid fill, so a list of them stays calm), a green **✓ Been** button for places still to go in your plan, and a solid green tick for places you've been (tap to undo).
+- **Plan:** your own list. **To go** is sorted nearest first. **Been** sits underneath, latest first, with times. It starts empty, with a hint pointing at the Add button. On the map, places in your plan get an orange ring.
 - **Chip:** an outlined pill. When on, it fills with its kind colour. With no chips on, everything shows.
-- **Sheet:** title, a meta line, then only the sections that have content: notes, description, order, hours, address. Walk, Maps and Been here are pinned at the bottom.
+- **Sheet:** title, a meta line, two toggles (**Add to plan** and **Mark as been**, so you can tick somewhere you wandered into), then only the sections that have content: notes, description, order, hours, address. Walk and Google Maps are pinned at the bottom.
 
 ## Motion
 
@@ -72,7 +73,7 @@ Motion is used to confirm an action or show where something went, never as decor
 | `--ease-spring` | `cubic-bezier(.34,1.56,.64,1)` | Small overshoot for confirmations |
 
 The moments:
-- **Tick:** the circle pops and the check mark draws itself. The count on the Been tab bumps.
+- **Add and Been:** the pill pops and its check mark draws itself. The count on the Plan tab bumps when you add something.
 - **Lists:** the first dozen rows rise in (`--dur-list`, 420ms, each `--stagger` 45ms after the last), but only after you change a filter, tab or day. Live updates (the clock, your location) never replay this.
 - **Filters:** two beats. The button fills with a small spring, the old rows fade up and out (180ms), and pins that no longer match shrink away. Then the new rows rise in and the matching pins pop in, rippling out from the middle of the map.
 - **Pins:** they pop in, rippling out from SoMa. Selecting one scales it up smoothly.

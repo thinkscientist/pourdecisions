@@ -496,61 +496,6 @@ window.PLACES = [
   },
 ];
 
-// ── The plan: four days, each starting in SoMa ───────────────────────────
-window.DAYS = [
-  {
-    date: "2026-10-31", label: "Sat 31 Oct", title: "North: Chinatown, Polk and Union",
-    steps: [
-      { k: "Start", text: "", places: ["sightglass-soma"] },
-      { k: "Go", text: "T Metro north to Chinatown, then uphill to Polk Street." },
-      { k: "Coffee", text: "", places: ["saint-frank", "wrecking-ball"] },
-      { k: "Dinner", text: "Pick one. Both need booking.", places: ["four-kings", "mister-jius"] },
-    ],
-    watch: [
-      "JouJou is closed.",
-      "The Castro is closed to traffic for Halloween from 11am.",
-    ],
-  },
-  {
-    date: "2026-11-01", label: "Sun 1 Nov", title: "East, then the Mission",
-    steps: [
-      { k: "Start", text: "Then walk east to the Embarcadero.", places: ["telescope"] },
-      { k: "Lunch", text: "At the Ferry Building, then BART to 16th St Mission.", places: ["lunette"] },
-      { k: "Coffee", text: "The Valencia Street crawl.", places: ["ritual-valencia", "four-barrel", "sightglass-mission"] },
-      { k: "Dinner", text: "Pick one.", places: ["delfina", "jules", "joujou"] },
-    ],
-    watch: [
-      "Swan Oyster Depot, Mister Jiu's and Verjus are closed.",
-      "Half marathon disrupts the Wharf and Marina until about noon.",
-      "Clocks go back an hour overnight.",
-    ],
-  },
-  {
-    date: "2026-11-02", label: "Mon 2 Nov", title: "West: Hayes Valley, Potrero Hill and the Castro",
-    steps: [
-      { k: "Start", text: "", places: ["sightglass-soma"] },
-      { k: "Go", text: "Muni Metro along Market to Civic Center, then walk to Hayes Valley." },
-      { k: "Coffee", text: "Reach Tartine before its 4pm Monday close.", places: ["blue-bottle-linden", "tartine-manufactory"] },
-      { k: "Eat", text: "Oysters in the Castro, then dinner on Fillmore.", places: ["anchor-oyster", "the-progress"] },
-    ],
-    watch: [
-      "Zuni, Mister Jiu's, Verjus and JouJou are closed.",
-      "Día de los Muertos procession from 7pm in the Mission.",
-    ],
-  },
-  {
-    date: "2026-11-03", label: "Tue 3 Nov", title: "One last trip north, kept light",
-    steps: [
-      { k: "Start", text: "", places: ["sightglass-soma"] },
-      { k: "Coffee", text: "T Metro north to Chinatown. Check its hours that morning.", places: ["coffee-movement"] },
-      { k: "Dinner", text: "Pick one.", places: ["mister-jius", "happy-crane"] },
-    ],
-    watch: [
-      "State Bird Provisions and Anchor Oyster Bar are closed.",
-    ],
-  },
-];
-
 // ── Coordinates ──────────────────────────────────────────────────────────
 // Geocoded from OpenStreetMap (Nominatim) on 30 Oct 2026 against the guide's
 // address, or the business name where the guide gives only a neighbourhood.

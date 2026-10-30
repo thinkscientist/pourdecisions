@@ -5,8 +5,7 @@ A phone-first web app for walking around San Francisco, 31 Oct – 3 Nov 2026. I
 ## What it does
 
 - **Nearby.** A map, plus a list sorted by walking time from you (or from your SoMa base until you share your location). Each row shows the area and whether the place is open right now, in San Francisco time. You can filter by Coffee, Eat and Drink, and search by name, area or dish.
-- **Plan.** The four-day plan, opened on today's date, with that day's closures and stops. The map highlights the stops.
-- **Been.** Tap the circle next to any place to tick it off. This tab lists what you've done and when.
+- **Plan.** Your own list. Tap **+ Add** on any place in Nearby to add it. Plan shows what's still to go, nearest first, each with a **Been** button, and underneath, where you've been and when. You can also mark a place as been from its details page without planning it first.
 - **Place details.** What it is, what to order, warnings, hours for each trip day and the address. **Walk** opens Google Maps walking directions.
 - **Works like an app.** Add it to your home screen. It keeps working on patchy signal.
 
@@ -16,7 +15,7 @@ The look follows a small San Francisco design system; see [DESIGN.md](DESIGN.md)
 
 - Hours, dishes and warnings come from the trip guide. Where the guide gives no hours, the app shows none rather than guessing.
 - Pin positions come from OpenStreetMap data. For five places the guide gives only a neighbourhood and the map data has no match (Piglet & Co, Restaurant Naides, Dingles, Abacá, Fikscue). Their pins have a dashed outline and mark the neighbourhood only. **Walk** still finds the exact spot, because it uses the guide's own Google Maps search.
-- Your ticks are stored on your phone, in the browser's storage for this site. Clearing the browser's site data erases them, so use "Copy list" on the Been tab if you want a backup.
+- Your plan and ticks are stored on your phone, in the browser's storage for this site. Clearing the browser's site data erases them, so use "Copy list" on the Plan tab if you want a backup.
 - To preview a trip day before you go, add `?now=2026-10-31T10:30` to the URL. It sets the clock to that San Francisco time.
 
 ## Running it

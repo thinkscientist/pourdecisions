@@ -147,6 +147,10 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   position: absolute; z-index: 2; left: 0; right: 0; bottom: 0;
   top: calc(36dvh + var(--safe-top) - var(--sheet-overlap));
   display: flex; flex-direction: column;
+  /* One solid surface (title row and list together), so no seam can show the map through. */
+  background: var(--bg);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  box-shadow: 0 -6px 18px rgb(13 24 32 / .10);
   transform: translateY(var(--drawer-y, 0px));
   transition: transform var(--dur-drawer) var(--ease-out);
 }
@@ -156,10 +160,6 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3);
   padding-top: 22px;
   padding-left: var(--gutter-l); padding-right: var(--gutter-r);
-  background: var(--bg);
-  border-radius: var(--r-lg) var(--r-lg) 0 0;
-  box-shadow: 0 -6px 18px rgb(13 24 32 / .10);
-  clip-path: inset(-40px -40px 0 -40px); /* shadow falls on the map only, never over the list */
   touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;
 }
 .drawer.dragging .brand { cursor: grabbing; }
@@ -237,6 +237,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   border: 1.5px solid var(--surface);
 }
 .pin.is-dim .pin-b { transform: scale(.6); opacity: .4; filter: saturate(.2); }
+.pin.is-planned .pin-b { box-shadow: 0 0 0 2px var(--accent), 0 1px 3px rgb(0 0 0 / .3); } /* in your plan */
 .pin.is-sel .pin-b { transform: scale(1.3); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 40%, transparent), 0 2px 6px rgb(0 0 0 / .35); }
 .pin.is-approx .pin-b { border-style: dashed; }
 .zoomed-out .pin-b { width: 14px; height: 14px; border-width: 2px; }
@@ -270,7 +271,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 
 /* ── Panel ─────────────────────────────────────────────────────────────── */
 .panel {
-  flex: 1; overflow-y: auto; min-height: 0; background: var(--bg);
+  flex: 1; overflow-y: auto; min-height: 0;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   padding-left: var(--gutter-l); padding-right: var(--gutter-r);
@@ -354,51 +355,53 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 @keyframes draw { to { stroke-dashoffset: 0; } }
 .check[aria-pressed="true"] svg { opacity: 1; }
 
-/* ── Plan ──────────────────────────────────────────────────────────────── */
-.days {
-  position: sticky; top: 0; z-index: 5; background: var(--bg);
-  margin-inline: calc(-1 * var(--gutter-l)) calc(-1 * var(--gutter-r));
-  padding: var(--sp-3) var(--gutter-r) var(--sp-2) var(--gutter-l);
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+/* ── Add / Been controls ───────────────────────────────────────────────── */
+/* A labelled pill at the end of a row: "+ Add" / "✓ Added" in Nearby, "✓ Been" in Plan. */
+.pill-btn {
+  position: relative; flex: none; margin-left: var(--sp-3);
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 30px; padding: 0 11px 0 9px; border-radius: var(--r-pill);
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  font-size: var(--fs-sm); font-weight: 700; white-space: nowrap;
+  transition: background-color var(--dur-base), border-color var(--dur-base), color var(--dur-base), transform var(--dur-fast);
 }
-.days-ink {
-  position: absolute; bottom: var(--sp-2); left: var(--gutter-l); height: 2px; border-radius: 1px;
-  width: calc((100% - var(--gutter-l) - var(--gutter-r)) / 4);
-  background: var(--accent);
-  transform: translateX(calc(var(--i, 0) * 100%));
-  transition: transform var(--dur-base) var(--ease-out);
+.pill-btn::after { content: ""; position: absolute; inset: -9px -6px; } /* a thumb-sized tap target */
+.pill-btn svg { width: 14px; height: 14px; stroke-width: 2.6; flex: none; }
+.pill-btn:active { transform: scale(.94); }
+/* In your plan: an orange tint rather than a solid fill, so a list of them stays calm. */
+.pill-btn.on {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
 }
-.day {
-  border: 0; background: none; padding: 6px 0 8px; font-size: var(--fs-sm); color: var(--text-muted);
-  border-bottom: 2px solid var(--line); position: relative; font-variant-numeric: tabular-nums;
-}
-.day { transition: color var(--dur-fast); }
-.day[aria-selected="true"] { color: var(--text); font-weight: 700; }
-.day.is-today::after {
-  content: ""; position: absolute; top: 2px; right: calc(50% - 30px); width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
-}
+.pill-btn.been { color: var(--status-open); border-color: color-mix(in srgb, var(--status-open) 45%, var(--line)); }
+.row.pop .pill-btn { animation: pop var(--dur-slow) var(--ease-spring); }
+.row.pop .pill-btn path:first-child { stroke-dasharray: 20; stroke-dashoffset: 20; animation: draw 260ms 80ms var(--ease-out) forwards; }
 
+/* ── Plan ──────────────────────────────────────────────────────────────── */
 .view:not([hidden]) { animation: fade-up var(--dur-base) var(--ease-out); }
-#dayplan.enter { animation: fade-up var(--dur-base) var(--ease-out); }
 @keyframes fade-up { from { opacity: 0; transform: translateY(4px); } }
-.plan-head { margin: var(--sp-3) 0 var(--sp-3); }
+.plan-head { margin: var(--sp-3) 0 var(--sp-1); }
 .plan-head h2 { font: 700 var(--fs-lg)/1.2 var(--font-display); margin: 0; text-wrap: balance; }
 .plan-head p { margin: 2px 0 0; color: var(--text-muted); font-size: var(--fs-sm); }
-
-.watch { background: var(--warn-bg); border-radius: var(--r-md); padding: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-3); font-size: var(--fs-sm); }
-.watch ul { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 2px; }
-
-.step { margin-bottom: var(--sp-3); }
-.step-k { font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
-.step-text { font-size: var(--fs-sm); margin: 2px 0 0; }
-.step .list { margin-top: var(--sp-1); background: var(--surface); border-radius: var(--r-md); padding: 0 var(--sp-3); }
-
-/* ── Been ──────────────────────────────────────────────────────────────── */
-.tally { margin: var(--sp-4) 0 var(--sp-3); display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; }
-.tally strong { font: 800 32px/1 var(--font-display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.tally span { font-size: var(--fs-sm); color: var(--text-muted); display: inline-flex; gap: var(--sp-3); align-items: center; flex-wrap: wrap; }
-.tally span b { display: inline-flex; align-items: center; gap: 5px; font-weight: 400; }
-.been-tools { display: flex; gap: var(--sp-4); align-items: center; flex-wrap: wrap; margin-top: var(--sp-4); font-size: var(--fs-sm); }
+.plan-note { color: var(--text-muted); font-size: var(--fs-sm); margin: var(--sp-3) 0; }
+.subhead {
+  margin: var(--sp-5) 0 0; font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.plan-empty {
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-3);
+  text-align: center; padding: var(--sp-5) var(--sp-3); color: var(--text-muted); font-size: var(--fs-sm);
+}
+.plan-empty h2 { font: 700 var(--fs-lg)/1.2 var(--font-display); color: var(--text); margin: 0; }
+.plan-empty p { margin: 0; max-width: 34ch; line-height: 1.6; }
+.pill-demo {
+  display: inline-flex; align-items: center; gap: 3px; vertical-align: 1px;
+  padding: 1px 8px 1px 6px; border: 1px solid var(--line); border-radius: var(--r-pill);
+  background: var(--surface); color: var(--text); font-weight: 700; font-size: var(--fs-xs);
+}
+.pill-demo svg { width: 11px; height: 11px; stroke-width: 2.8; }
+.been-tools { display: flex; gap: var(--sp-4); align-items: center; flex-wrap: wrap; margin-top: var(--sp-5); font-size: var(--fs-sm); }
 .link.quiet { color: var(--text-muted); font-weight: 400; }
 
 /* ── Buttons ───────────────────────────────────────────────────────────── */
@@ -411,11 +414,22 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .btn svg { width: 18px; height: 18px; flex: none; }
 .btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .btn.small { height: 34px; font-size: var(--fs-sm); padding: 0 var(--sp-3); }
-.btn.done { background: var(--status-open); border-color: var(--status-open); color: #fff; }
+/* Toggles in the details sheet: Add to plan / Mark as been */
+.d-toggles { display: flex; gap: var(--sp-2); }
+.toggle {
+  flex: 1; height: 40px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: var(--fs-sm);
+  transition: background-color var(--dur-base), border-color var(--dur-base), color var(--dur-base), transform var(--dur-fast);
+}
+.toggle svg { width: 16px; height: 16px; stroke-width: 2.4; }
+.toggle:active { transform: scale(.97); }
+.toggle.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.toggle.been { color: var(--status-open); }
+.toggle.been.on { background: var(--status-open); border-color: var(--status-open); color: #fff; }
 
 /* ── Tabs ──────────────────────────────────────────────────────────────── */
 .tabs {
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(2, 1fr);
   background: var(--surface); border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom, 0px);
   padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
@@ -458,7 +472,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   display: flex; flex-direction: column; gap: var(--sp-4);
 }
 .sheet-actions {
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-2);
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2);
   padding: var(--sp-3) var(--gutter-r) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px)) var(--gutter-l);
   border-top: 1px solid var(--line);
 }
@@ -499,8 +513,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   /* Desktop / tablet landscape: map left, list right, no drawer */
   .app { --sheet-overlap: 0px; }
   .mapwrap { right: 420px; }
-  .drawer { top: 0; left: auto; width: 420px; transform: none; border-left: 1px solid var(--line); }
-  .brand { border-radius: 0; box-shadow: none; clip-path: none; padding-top: var(--sp-4); cursor: auto; touch-action: auto; }
+  .drawer { top: 0; left: auto; width: 420px; transform: none; border-left: 1px solid var(--line); border-radius: 0; box-shadow: none; }
+  .brand { padding-top: var(--sp-4); cursor: auto; touch-action: auto; }
   .handle { display: none; }
   .sheet { left: auto; width: 420px; right: 0; }
 }

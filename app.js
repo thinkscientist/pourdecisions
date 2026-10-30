@@ -3,7 +3,6 @@
   "use strict";
 
   const PLACES = window.PLACES;
-  const DAYS = window.DAYS;
   const TRIP = window.TRIP;
   const byId = Object.fromEntries(PLACES.map((p) => [p.id, p]));
   const $ = (s) => document.querySelector(s);
@@ -84,14 +83,6 @@
     }
     return { cls: "closed", text: "Closed now" };
   }
-  // Status for a plan day that isn't today: just that day's hours.
-  function dayStatus(p, date) {
-    const h = hoursText(p, date);
-    if (h.cls === "unk") return { cls: "unknown", text: "" };
-    if (h.cls === "closed") return { cls: "closed", text: "Closed this day" };
-    return { cls: "later", text: h.text };
-  }
-
   // ── Distance ─────────────────────────────────────────────────────────────
   function meters(a, b) {
     const R = 6371000, t = Math.PI / 180;
@@ -108,16 +99,21 @@
   }
 
   // ── State ────────────────────────────────────────────────────────────────
-  const visited = store.get("visited", {}); // id -> ISO timestamp
+  // Your plan: places you've added (id -> when added), and places you've been (id -> when).
+  // A place can be "been" without being planned: you can tick somewhere you wandered into.
+  const planned = store.get("planned", {});
+  const visited = store.get("visited", {});
   const saved = store.get("ui2", {});
-  const now0 = sfNow();
-  const tripDay = DAYS.find((d) => d.date === now0.date);
+  // The trip's days, for the hours table.
+  const TRIP_DATES = [];
+  for (let d = new Date(TRIP.start + "T12:00:00Z"); d <= new Date(TRIP.end + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + 1)) {
+    TRIP_DATES.push(d.toISOString().slice(0, 10));
+  }
   const state = {
-    tab: ["explore", "plan", "been"].includes(saved.tab) ? saved.tab : "explore",
+    tab: saved.tab === "explore" ? "explore" : saved.tab ? "plan" : "explore",
     kinds: new Set(saved.kinds || []), // empty = everything
     q: "",
     sel: null,
-    day: tripDay ? tripDay.date : (now0.date > TRIP.end ? DAYS[DAYS.length - 1].date : DAYS[0].date),
     me: null,
     collapsed: false, // list drawer slid down to just its title row
   };
@@ -150,6 +146,7 @@
   const gmapsSearch = (p) => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(p.q);
   const gmapsWalk = (p) => "https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=" + encodeURIComponent(p.q);
   const checkSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5.5 12.5 4 4L18.5 8"/></svg>';
+  const plusSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
   const walkSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13" cy="4.5" r="1.8"/><path d="m9 21 2.5-6.5L14 17v4M7 12.5l2.5-4.5 4 1.5 2.5 3.5M11.5 14.5 13 9"/></svg>';
   const mapSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/></svg>';
 
@@ -162,18 +159,28 @@
     return true;
   }
 
-  // The one list row used on every tab.
-  function rowHtml(p, st, sub) {
-    const v = !!visited[p.id];
+  // The one list row used everywhere. Its control on the right depends on where it is:
+  //   "add"    Nearby: + Add / ✓ Added, to put it in your plan
+  //   "been"   Plan, still to go: a Been button
+  //   "unbeen" Plan, been: a green tick you can tap to undo
+  function rowHtml(p, st, sub, control = "add") {
+    const v = !!visited[p.id], inPlan = !!planned[p.id], name = esc(p.name);
     const mins = walkMins(meters(origin(), p));
     const bits = [esc(sub ?? p.area)];
-    if (st && st.text) bits.push(`<span class="st st-${st.cls}">${esc(st.text)}</span>`);
+    if (control === "add" && v) bits.push('<span class="st st-open">Been</span>');
+    else if (st && st.text) bits.push(`<span class="st st-${st.cls}">${esc(st.text)}</span>`);
+    const ctl = {
+      add: `<button type="button" class="pill-btn${inPlan ? " on" : ""}" data-plan="${p.id}" aria-pressed="${inPlan}"
+        aria-label="${inPlan ? `In your plan. Tap to remove ${name}` : `Add ${name} to your plan`}">${inPlan ? `${checkSvg}Added` : `${plusSvg}Add`}</button>`,
+      been: `<button type="button" class="pill-btn been" data-been="${p.id}" aria-label="Mark ${name} as been">${checkSvg}Been</button>`,
+      unbeen: `<button type="button" class="check" data-been="${p.id}" aria-pressed="true" aria-label="Been here. Tap to undo: ${name}"><i>${checkSvg}</i></button>`,
+    }[control];
     return `<li class="row k-${p.kind}${v ? " is-visited" : ""}${state.sel === p.id ? " is-sel" : ""}${fx.tick === p.id ? " pop" : ""}" data-id="${p.id}">
       <button type="button" class="row-main" data-open="${p.id}">
-        <span class="row-top"><i class="dot"></i><span class="row-name">${esc(p.name)}</span><span class="row-walk">${walkText(mins)}</span></span>
+        <span class="row-top"><i class="dot"></i><span class="row-name">${name}</span><span class="row-walk">${walkText(mins)}</span></span>
         <span class="row-sub">${bits.join(" · ")}</span>
       </button>
-      <button type="button" class="check" data-visit="${p.id}" aria-pressed="${v}" aria-label="${v ? "Been here. Tap to undo" : "Mark as been"}: ${esc(p.name)}"><i>${checkSvg}</i></button>
+      ${ctl}
     </li>`;
   }
 
@@ -209,67 +216,49 @@
   }
 
   // ── Plan ─────────────────────────────────────────────────────────────────
-  function renderPlan(now) {
-    const daysEl = $("#days");
-    if (!daysEl.children.length) {
-      daysEl.innerHTML = DAYS.map((d) => `<button type="button" class="day" role="tab" data-day="${d.date}">${esc(d.label.replace(/ (Oct|Nov)$/, ""))}</button>`).join("")
-        + '<span class="days-ink" aria-hidden="true"></span>';
-    }
-    daysEl.querySelectorAll(".day").forEach((b) => {
-      b.setAttribute("aria-selected", String(b.dataset.day === state.day));
-      b.classList.toggle("is-today", b.dataset.day === now.date);
-    });
-    daysEl.style.setProperty("--i", DAYS.findIndex((x) => x.date === state.day));
-
-    const d = DAYS.find((x) => x.date === state.day);
-    const isToday = d.date === now.date;
-    const ids = d.steps.flatMap((s) => s.places || []);
-    const done = ids.filter((id) => visited[id]).length;
-    const row = (id) => rowHtml(byId[id], isToday ? status(byId[id], now) : dayStatus(byId[id], d.date));
-
-    $("#dayplan").innerHTML = `
-      <div class="plan-head">
-        <h2>${esc(d.title)}</h2>
-        <p>${esc(dayLabel(d.date))}${isToday ? " · today" : ""} · ${done} of ${ids.length} done</p>
-      </div>
-      <div class="watch"><ul>${d.watch.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></div>
-      ${d.steps.map((s) => `
-        <div class="step">
-          <div class="step-k">${esc(s.k)}</div>
-          ${s.text ? `<p class="step-text">${esc(s.text)}</p>` : ""}
-          ${(s.places || []).length ? `<ol class="list">${s.places.map(row).join("")}</ol>` : ""}
-        </div>`).join("")}`;
-    if (fx.list) replay($("#dayplan"), "enter");
-  }
-
-  // ── Been ─────────────────────────────────────────────────────────────────
+  // Your own list: still to go (nearest first), then where you've been (latest first).
   let confirmClear = false;
-  function renderBeen(now) {
-    const ids = Object.keys(visited).filter((id) => byId[id]);
-    const countEl = $("#been-count");
-    if (ids.length > (+countEl.textContent || 0)) replay(countEl, "bump");
-    countEl.textContent = ids.length ? ids.length : "";
-    if (state.tab !== "been") return;
-    const n = (k) => ids.filter((id) => byId[id].kind === k).length;
+  const planIds = () => Object.keys(planned).filter((id) => byId[id] && !visited[id]);
+  const beenIds = () => Object.keys(visited).filter((id) => byId[id]);
+  function renderPlan(now) {
+    const o = origin();
+    const toGo = planIds().map((id) => byId[id]).sort((a, b) => meters(o, a) - meters(o, b));
+    const been = beenIds().sort((a, b) => visited[b].localeCompare(visited[a]));
+    const countEl = $("#plan-count");
+    if (toGo.length > (+countEl.textContent || 0)) replay(countEl, "bump");
+    countEl.textContent = toGo.length || "";
+    if (state.tab !== "plan") return;
+
     const when = (iso) => new Date(iso).toLocaleString("en-GB", {
       timeZone: "America/Los_Angeles", weekday: "short", hour: "numeric", minute: "2-digit", hour12: true,
     }).replace(/ (am|pm)/, "$1");
-    const sorted = ids.sort((a, b) => visited[b].localeCompare(visited[a]));
 
-    $("#been").innerHTML = ids.length ? `
-      <div class="tally">
-        <strong>${ids.length} ${ids.length === 1 ? "place" : "places"}</strong>
-        <span>${Object.entries(KIND).map(([k, v]) => `<b class="k-${k}"><i class="dot"></i>${n(k)} ${v.label.toLowerCase()}</b>`).join("")}</span>
+    if (!toGo.length && !been.length) {
+      $("#plan").innerHTML = `
+        <div class="plan-empty">
+          <h2>Your plan is empty</h2>
+          <p>Tap <span class="pill-demo">${plusSvg}Add</span> next to any place in Nearby. It'll show up here, closest first, and you can tick it off once you've been.</p>
+          <button type="button" class="btn small" data-tab="explore">Browse nearby</button>
+        </div>`;
+      return;
+    }
+    $("#plan").innerHTML = `
+      <div class="plan-head">
+        <h2>Your plan</h2>
+        <p>${toGo.length ? `${toGo.length} to go · ${inSF() ? "nearest first" : "nearest to SoMa first"}` : "Nothing left to go"}${been.length ? ` · ${been.length} been` : ""}</p>
       </div>
-      <ol class="list" id="been-list">${sorted.map((id) => rowHtml(byId[id], null, `${byId[id].area} · ${when(visited[id])}`)).join("")}</ol>
+      ${toGo.length
+        ? `<ol class="list" id="togo-list">${toGo.map((p) => rowHtml(p, status(p, now), null, "been")).join("")}</ol>`
+        : `<p class="plan-note">All done. Add more from <button type="button" class="link" data-tab="explore">Nearby</button>.</p>`}
+      ${been.length ? `<h3 class="subhead">Been</h3>
+        <ol class="list" id="been-list">${been.map((id) => rowHtml(byId[id], null, `${byId[id].area} · ${when(visited[id])}`, "unbeen")).join("")}</ol>` : ""}
       <div class="been-tools">
         <button type="button" class="link" id="btn-copy">Copy list</button>
         ${confirmClear
-          ? `<span>Untick all ${ids.length}? <button type="button" class="link" id="btn-clear-yes">Yes, untick</button> · <button type="button" class="link quiet" id="btn-clear-no">Keep</button></span>`
-          : `<button type="button" class="link quiet" id="btn-clear">Untick all</button>`}
-      </div>`
-      : `<p class="empty">Nothing ticked yet. Tap the circle next to a place once you've been.</p>`;
-    if ($("#been-list")) enterRows($("#been-list"));
+          ? `<span>Clear your plan and ticks? <button type="button" class="link" id="btn-clear-yes">Clear</button> · <button type="button" class="link quiet" id="btn-clear-no">Keep</button></span>`
+          : `<button type="button" class="link quiet" id="btn-clear">Start over</button>`}
+      </div>`;
+    if ($("#togo-list")) enterRows($("#togo-list"));
   }
 
   // ── Sheet (place details) ────────────────────────────────────────────────
@@ -278,14 +267,14 @@
     if (!sheetId) return;
     const p = byId[sheetId];
     const st = status(p, now);
-    const v = !!visited[p.id];
+    const v = !!visited[p.id], inPlan = !!planned[p.id];
     const mins = walkMins(meters(origin(), p));
     const notes = [];
     if (p.warn) notes.push(p.warn);
     if (p.dateWarn && p.dateWarn[now.date]) notes.push(p.dateWarn[now.date]);
     if (p.hoursNote) notes.push(p.hoursNote);
     const tags = [p.book && "Book ahead", ...(p.tags || []).filter((t) => !/^book|reservations/i.test(t))].filter(Boolean);
-    const anyHours = DAYS.some((d) => specFor(p, d.date));
+    const anyHours = TRIP_DATES.some((date) => specFor(p, date));
 
     $("#sheet").className = `sheet k-${p.kind}`;
     $("#sheet-body").innerHTML = `
@@ -294,14 +283,18 @@
         <div class="d-meta"><i class="dot"></i>${KIND[p.kind].label} · ${esc(p.area)}${p.price ? ` · ${esc(p.price)}` : ""} · ${walkText(mins)} walk${inSF() ? "" : " from SoMa"}</div>
         ${st.text ? `<div class="d-meta"><span class="st st-${st.cls}">${esc(st.text)}</span></div>` : ""}
       </div>
+      <div class="d-toggles">
+        <button type="button" class="toggle${inPlan ? " on" : ""}" data-plan="${p.id}" aria-pressed="${inPlan}">${inPlan ? `${checkSvg}In your plan` : `${plusSvg}Add to plan`}</button>
+        <button type="button" class="toggle been${v ? " on" : ""}" data-been="${p.id}" aria-pressed="${v}">${checkSvg}${v ? "Been here" : "Mark as been"}</button>
+      </div>
       ${notes.map((n) => `<div class="note">${esc(n)}</div>`).join("")}
       ${p.blurb ? `<p class="d-blurb">${esc(p.blurb)}</p>` : ""}
       ${p.order ? `<div class="d-sec"><h3>Order</h3><p>${esc(p.order)}</p></div>` : ""}
       ${tags.length ? `<p class="tags">${tags.map(esc).join(" · ")}</p>` : ""}
       <div class="d-sec"><h3>Hours</h3>
-        ${anyHours ? `<table class="hours"><tbody>${DAYS.map((d) => {
-          const h = hoursText(p, d.date);
-          return `<tr class="${d.date === now.date ? "today" : ""}"><td>${dayLabel(d.date)}</td><td class="${h.cls}">${esc(h.text)}</td></tr>`;
+        ${anyHours ? `<table class="hours"><tbody>${TRIP_DATES.map((date) => {
+          const h = hoursText(p, date);
+          return `<tr class="${date === now.date ? "today" : ""}"><td>${dayLabel(date)}</td><td class="${h.cls}">${esc(h.text)}</td></tr>`;
         }).join("")}</tbody></table>` : `<p class="tags">Not listed. Check Google Maps before you go.</p>`}
       </div>
       <div class="d-sec"><h3>Address</h3>
@@ -309,8 +302,7 @@
       </div>`;
     $("#sheet-actions").innerHTML = `
       <a class="btn primary" href="${gmapsWalk(p)}" target="_blank" rel="noopener">${walkSvg}Walk</a>
-      <a class="btn" href="${gmapsSearch(p)}" target="_blank" rel="noopener">${mapSvg}Maps</a>
-      <button type="button" class="btn${v ? " done" : ""}" data-visit="${p.id}" aria-pressed="${v}">${checkSvg}Been here</button>`;
+      <a class="btn" href="${gmapsSearch(p)}" target="_blank" rel="noopener">${mapSvg}Google Maps</a>`;
   }
   let lastFocus = null, closeTimer = null;
   function openSheet(id) {
@@ -513,12 +505,13 @@
     markers[p.id] = { m: pinAt(p.lng, p.lat, el, false), el, on: false };
   }
 
-  // Nearby shows the filtered places; Plan and Been show every pin and emphasise their own.
+  // Nearby shows the filtered places; Plan shows every pin and brings yours forward.
   const visibleIds = () => (state.tab === "explore" ? new Set(PLACES.filter(matches).map((p) => p.id)) : null);
+  // (An empty plan leaves the map as it is rather than dimming every pin.)
   function focusIds() {
-    if (state.tab === "plan") return new Set(DAYS.find((x) => x.date === state.day).steps.flatMap((s) => s.places || []));
-    if (state.tab === "been") return new Set(Object.keys(visited));
-    return null;
+    if (state.tab !== "plan") return null;
+    const ids = new Set([...planIds(), ...beenIds()]);
+    return ids.size ? ids : null;
   }
   function renderMarkers(now) {
     const vis = visibleIds();
@@ -546,6 +539,7 @@
       if (!show) continue;
       const el = mk.el;
       el.classList.toggle("is-visited", !!visited[p.id]);
+      el.classList.toggle("is-planned", !!planned[p.id] && !visited[p.id]);
       el.classList.toggle("is-closed", status(p, now).cls === "closed");
       el.classList.toggle("is-dim", !!foc && !foc.has(p.id));
       el.classList.toggle("is-sel", state.sel === p.id);
@@ -554,7 +548,7 @@
   }
   function fitTo(ids, opts = {}) {
     const pts = [...ids].map((id) => byId[id]).filter(Boolean).map((p) => [p.lng, p.lat]);
-    if (opts.withBase) pts.push([TRIP.base.lng, TRIP.base.lat]);
+    if (opts.withMe && inSF()) pts.push([state.me.lng, state.me.lat]);
     if (!pts.length) return;
     const duration = opts.instant ? 0 : anim(700);
     if (pts.length === 1) { map.flyTo({ center: pts[0], zoom: 15.5, duration }); return; }
@@ -562,8 +556,11 @@
     map.fitBounds(bounds, { padding: 40, maxZoom: 15.5, duration });
   }
   function fitCurrent(instant) {
-    const foc = focusIds();
-    if (foc && foc.size) return fitTo(foc, { withBase: state.tab === "plan", instant });
+    if (state.tab === "plan") {
+      // Frame what's still to go (and you); if nothing is, what you've done.
+      const ids = planIds().length ? planIds() : beenIds();
+      if (ids.length) return fitTo(ids, { instant, withMe: true });
+    }
     fitTo(visibleIds() || PLACES.map((p) => p.id), { instant });
   }
 
@@ -650,7 +647,18 @@
     toastTimer = setTimeout(hide, action ? 5000 : 3500);
   }
 
-  // ── Been ─────────────────────────────────────────────────────────────────
+  // ── Plan and Been ────────────────────────────────────────────────────────
+  function togglePlan(id) {
+    const p = byId[id];
+    if (planned[id]) {
+      const was = planned[id];
+      delete planned[id]; store.set("planned", planned); renderAll();
+      toast(`Removed ${p.name} from your plan`, { label: "Undo", run: () => { planned[id] = was; store.set("planned", planned); renderAll(); } });
+    } else {
+      planned[id] = new Date().toISOString(); store.set("planned", planned);
+      fx.tick = id; navigator.vibrate?.(10); renderAll();
+    }
+  }
   function setVisited(id, on) {
     if (on) visited[id] = new Date().toISOString(); else delete visited[id];
     store.set("visited", visited);
@@ -670,8 +678,10 @@
     }
   }
   function copyList() {
-    const ids = Object.keys(visited).filter((id) => byId[id]).sort((a, b) => visited[a].localeCompare(visited[b]));
-    const text = "Pour Decisions: places I've been\n" + ids.map((id) => `✓ ${byId[id].name} (${byId[id].area})`).join("\n");
+    const line = (id, mark) => `${mark} ${byId[id].name} (${byId[id].area})`;
+    const text = ["Pour Decisions: my plan",
+      ...planIds().map((id) => line(id, "○")),
+      ...beenIds().sort((a, b) => visited[a].localeCompare(visited[b])).map((id) => line(id, "✓"))].join("\n");
     navigator.clipboard?.writeText(text).then(() => toast("Copied. Paste it into a note to keep a backup."),
       () => toast("Couldn't copy on this device."));
   }
@@ -685,8 +695,7 @@
     });
     document.querySelectorAll(".view").forEach((v) => { v.hidden = v.dataset.view !== state.tab; });
     if (state.tab === "explore") renderExplore(now);
-    if (state.tab === "plan") renderPlan(now);
-    renderBeen(now);
+    renderPlan(now); // also keeps the tab's count current
     renderMarkers(now);
     renderPeek(now);
     renderSheet(now);
@@ -711,16 +720,13 @@
   document.addEventListener("click", (e) => {
     const t = e.target.closest("button, a");
     if (!t) return;
-    if (t.dataset.visit) { e.preventDefault(); toggleVisited(t.dataset.visit); return; }
+    if (t.dataset.plan) { e.preventDefault(); togglePlan(t.dataset.plan); return; }
+    if (t.dataset.been) { e.preventDefault(); toggleVisited(t.dataset.been); return; }
     if (t.dataset.open) { openSheet(t.dataset.open); return; }
     if (t.dataset.kind) {
       const k = t.dataset.kind;
       if (state.kinds.has(k)) state.kinds.delete(k); else state.kinds.add(k);
       saveUi(); changeFilter(); return;
-    }
-    if (t.dataset.day) {
-      if (state.day === t.dataset.day) return;
-      state.day = t.dataset.day; state.sel = null; fx.list = true; renderAll(); fitCurrent(false); return;
     }
     if (t.dataset.tab) {
       if (state.collapsed) setCollapsed(false); // picking a tab means you want to see it
@@ -736,8 +742,10 @@
       case "btn-clear": confirmClear = true; renderAll(); return;
       case "btn-clear-no": confirmClear = false; renderAll(); return;
       case "btn-clear-yes":
+        for (const k of Object.keys(planned)) delete planned[k];
         for (const k of Object.keys(visited)) delete visited[k];
-        store.set("visited", visited); confirmClear = false; renderAll(); toast("All places unticked."); return;
+        store.set("planned", planned); store.set("visited", visited);
+        confirmClear = false; renderAll(); toast("Plan cleared."); return;
       case "btn-copy": copyList(); return;
       default: return;
     }
