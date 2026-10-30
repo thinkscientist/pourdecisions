@@ -119,7 +119,7 @@
     sel: null,
     day: tripDay ? tripDay.date : (now0.date > TRIP.end ? DAYS[DAYS.length - 1].date : DAYS[0].date),
     me: null,
-    mapBig: false,
+    collapsed: false, // list drawer slid down to just its title row
   };
   // One-shot animation cues, consumed by the next render. Renders also happen on a timer
   // and on location updates, and those must not replay animations.
@@ -375,11 +375,75 @@
   map.touchZoomRotate.disableRotation();
   // The map runs under the status bar at the top and under the list sheet at the bottom:
   // centre things in the part you can actually see.
-  const syncMapPadding = () => {
-    const wrap = getComputedStyle($(".mapwrap"));
-    map.setPadding({ top: parseFloat(wrap.paddingTop) || 0, bottom: parseFloat(getComputedStyle($(".app")).getPropertyValue("--sheet-overlap")) || 0, left: 0, right: 0 });
-  };
-  syncMapPadding();
+  // ── List drawer ──────────────────────────────────────────────────────────
+  // The list is a drawer over the full-height map. Drag its title row (or tap the handle)
+  // to slide it down to just that row, and back. On wide screens it's a fixed side panel.
+  const drawer = $("#drawer"), brand = $("#brand"), stage = $("#stage");
+  const wide = () => window.matchMedia("(min-width: 900px)").matches;
+  const collapsedY = () => drawer.offsetHeight - brand.offsetHeight;
+  // Move the drawer to y (0 = open) and tell the map how much of it is covered.
+  function placeDrawer(y) {
+    drawer.style.setProperty("--drawer-y", `${y}px`);
+    stage.style.setProperty("--map-bottom", `${wide() ? 0 : Math.max(0, drawer.offsetHeight - y)}px`);
+  }
+  // Keep the map's centre in the part you can see: below the status bar, above the drawer.
+  function syncMapPadding(animate) {
+    const y = state.collapsed ? collapsedY() : 0;
+    const padding = {
+      top: parseFloat(getComputedStyle($(".mapwrap")).paddingTop) || 0,
+      bottom: wide() ? 0 : drawer.offsetHeight - y, left: 0, right: 0,
+    };
+    if (animate && !reducedMotion) map.easeTo({ padding, duration: 380 });
+    else map.setPadding(padding);
+  }
+  function setCollapsed(collapsed, animate = true) {
+    state.collapsed = collapsed && !wide();
+    placeDrawer(state.collapsed ? collapsedY() : 0);
+    $("#panel").inert = state.collapsed;
+    const h = $("#handle");
+    h.setAttribute("aria-expanded", String(!state.collapsed));
+    h.setAttribute("aria-label", state.collapsed ? "Show the list" : "Hide the list");
+    syncMapPadding(animate);
+  }
+  setCollapsed(false, false);
+
+  let drag = null, ignoreClickUntil = 0;
+  brand.addEventListener("pointerdown", (e) => {
+    if (wide() || e.button > 0) return;
+    drag = { id: e.pointerId, y0: e.clientY, last: e.clientY, t: e.timeStamp, v: 0, moved: false,
+      from: state.collapsed ? collapsedY() : 0, max: collapsedY() };
+    brand.setPointerCapture(e.pointerId); // keep following even once the finger leaves the title row
+  });
+  brand.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dy = e.clientY - drag.y0;
+    if (!drag.moved) {
+      if (Math.abs(dy) < 6) return; // still a tap
+      drag.moved = true;
+      drawer.classList.add("dragging"); stage.classList.add("dragging");
+    }
+    // Follow the finger, with some resistance past either end.
+    let y = drag.from + dy;
+    if (y < 0) y /= 3;
+    else if (y > drag.max) y = drag.max + (y - drag.max) / 3;
+    placeDrawer(y);
+    const dt = e.timeStamp - drag.t;
+    if (dt > 0) drag.v = 0.6 * drag.v + 0.4 * ((e.clientY - drag.last) / dt); // px per ms, smoothed
+    drag.last = e.clientY; drag.t = e.timeStamp;
+  });
+  function endDrag() {
+    if (!drag) return;
+    const d = drag; drag = null;
+    if (!d.moved) return; // a tap: the click handler toggles
+    ignoreClickUntil = performance.now() + 400; // lifting the finger also fires a click; it isn't a tap
+    drawer.classList.remove("dragging"); stage.classList.remove("dragging");
+    // A flick wins; otherwise settle on whichever side of halfway it was let go.
+    const y = d.from + (d.last - d.y0);
+    setCollapsed(d.v > 0.35 ? true : d.v < -0.35 ? false : y > d.max / 2);
+  }
+  brand.addEventListener("pointerup", endDrag);
+  brand.addEventListener("pointercancel", endDrag);
+  brand.addEventListener("click", () => { if (performance.now() > ignoreClickUntil && !wide()) setCollapsed(!state.collapsed); });
   const anim = (ms) => (reducedMotion ? 0 : ms);
 
   function applyMapTheme() {
@@ -509,8 +573,14 @@
     // Nudge the pin above centre so the preview card doesn't cover it.
     if (from === "map" || pan) map.easeTo({ center: [p.lng, p.lat], offset: [0, -30], duration: anim(450) });
     renderAll();
-    if (from === "map") {
-      document.querySelector(`.view:not([hidden]) [data-id="${id}"]`)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    // Bring its row into view in the list, scrolling only the list (never the whole screen).
+    const row = from === "map" && !state.collapsed && document.querySelector(`.view:not([hidden]) [data-id="${id}"]`);
+    if (row) {
+      const panel = $("#panel"), r = row.getBoundingClientRect(), pr = panel.getBoundingClientRect();
+      const top = 64; // clear of the sticky filter bar
+      if (r.top < pr.top + top || r.bottom > pr.bottom) {
+        panel.scrollTo({ top: panel.scrollTop + r.top - pr.top - top, behavior: reducedMotion ? "auto" : "smooth" });
+      }
     }
   }
   map.on("click", () => { if (state.sel && !sheetId) { state.sel = null; renderAll(); } });
@@ -653,6 +723,7 @@
       state.day = t.dataset.day; state.sel = null; fx.list = true; renderAll(); fitCurrent(false); return;
     }
     if (t.dataset.tab) {
+      if (state.collapsed) setCollapsed(false); // picking a tab means you want to see it
       if (state.tab === t.dataset.tab) { $("#panel").scrollTo({ top: 0, behavior: "smooth" }); return; }
       state.tab = t.dataset.tab; state.sel = null; confirmClear = false; fx.list = true; saveUi();
       $("#panel").scrollTop = 0; renderAll();
@@ -661,13 +732,6 @@
     }
     switch (t.id) {
       case "btn-locate": case "btn-locprompt": startWatch(true); return;
-      case "btn-expand":
-        state.mapBig = !state.mapBig;
-        $("#app").classList.toggle("map-big", state.mapBig);
-        t.setAttribute("aria-pressed", String(state.mapBig));
-        t.setAttribute("aria-label", state.mapBig ? "Show the list again" : "Make the map bigger");
-        setTimeout(() => map.resize(), 50);
-        return;
       case "sheet-close": closeSheet(); return;
       case "btn-clear": confirmClear = true; renderAll(); return;
       case "btn-clear-no": confirmClear = false; renderAll(); return;
@@ -712,7 +776,7 @@
     if (!inSF()) fitCurrent(true); // a location fix that arrived first already centred the map
     zoomClass();
   });
-  window.addEventListener("resize", () => { map.resize(); syncMapPadding(); });
+  window.addEventListener("resize", () => { map.resize(); setCollapsed(state.collapsed, false); });
   setInterval(renderAll, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) renderAll(); });
 

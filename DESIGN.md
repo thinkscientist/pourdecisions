@@ -26,6 +26,16 @@ The map is OpenFreeMap's vector "Positron" style, recoloured at load time from t
 
 ## Layout
 
+The map fills the screen and runs up under the status bar. The list is a drawer laid over it, with rounded top corners and a soft shadow that falls on the map only. Its title row carries the **Pour Decisions.** wordmark, a grab handle and the San Francisco date and time. The clock says "in SF" whenever your phone is on another time zone. Keeping the name on the drawer, not at the top, keeps it clear of the blur iOS puts under the status bar in home-screen apps.
+
+**The drawer:** drag the title row down to slide the list away, leaving just the title row over a full-screen map. Drag it up to bring the list back. A flick decides by its direction; a slow drag settles on whichever side of halfway you let go. Tapping the handle or title row toggles it, and picking a tab brings the list back. While you drag, the drawer follows your finger, with resistance past either end. When it settles (`--dur-drawer`, 380ms), the map re-centres on the part you can still see. On wide screens the drawer is a fixed side panel.
+
+## Map
+
+The map is OpenFreeMap's vector "Positron" style, recoloured at load time from the `--map-*` tokens. Light mode is fog-grey land, white streets, a bay-blue wash for water and a cypress wash for parks. Dark mode is the bay at night. City, state and country names are hidden so they don't sit on the pins. Pins use the kind colours, your position uses the accent, and the SoMa base is a small dark home marker.
+
+## Layout
+
 The map runs from the very top of the screen, under the status bar. The list is a sheet with rounded top corners that tucks 16px over the bottom of the map (`--sheet-overlap`), and its title row carries the **Pour Decisions.** wordmark plus the San Francisco date and time. The clock says "in SF" whenever your phone is on another time zone. Keeping the name on the sheet, not at the top, keeps it clear of the blur iOS puts under the status bar in home-screen apps, and it stays on screen on every tab, even with the map expanded.
 
 ## Type
@@ -57,6 +67,7 @@ Motion is used to confirm an action or show where something went, never as decor
 | `--dur-slow` | 380ms | Springy confirmations: ticking a place off, pins appearing, a filter button turning on |
 | `--dur-list` | 420ms | A row rising into a list |
 | `--stagger` | 45ms | The gap between rows rising in |
+| `--dur-drawer` | 380ms | The list drawer settling open or closed |
 | `--ease-out` | `cubic-bezier(.2,.8,.2,1)` | Entrances and slides |
 | `--ease-spring` | `cubic-bezier(.34,1.56,.64,1)` | Small overshoot for confirmations |
 

@@ -22,20 +22,20 @@
 </head>
 <body>
 <div class="app" id="app">
+  <div class="stage" id="stage">
   <section class="mapwrap" aria-label="Map">
     <div id="map"></div>
     <div class="mapbtns">
       <button class="mapbtn" id="btn-locate" type="button" aria-label="Show where I am">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 20l7-3.5 7 3.5z"/></svg>
       </button>
-      <button class="mapbtn" id="btn-expand" type="button" aria-label="Make the map bigger" aria-pressed="false">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
-      </button>
     </div>
     <div class="peek" id="peek" hidden></div>
   </section>
 
-  <header class="brand">
+  <div class="drawer" id="drawer">
+  <header class="brand" id="brand">
+    <button type="button" class="handle" id="handle" aria-controls="panel" aria-expanded="true" aria-label="Hide the list"></button>
     <span class="wordmark">Pour Decisions</span>
     <span class="clock" id="clock"></span>
   </header>
@@ -67,6 +67,8 @@
       <div id="been"></div>
     </section>
   </main>
+  </div>
+  </div>
 
   <nav class="tabs" aria-label="Sections">
     <button type="button" data-tab="explore" aria-current="page">
