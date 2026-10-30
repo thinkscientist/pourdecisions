@@ -37,3 +37,23 @@ Rules:
 - **Row:** coloured dot, name, walking time on the right, and one muted line (area · status). The tick circle sits on the far right. The same row is used in Nearby, Plan and Been.
 - **Chip:** an outlined pill. When on, it fills with its kind colour. With no chips on, everything shows.
 - **Sheet:** title, a meta line, then only the sections that have content: notes, description, order, hours, address. Walk, Maps and Been here are pinned at the bottom.
+
+## Motion
+
+Motion is used to confirm an action or show where something went, never as decoration. Every animation is turned off when the phone's reduce-motion setting is on.
+
+| Token | Value | Used for |
+|---|---|---|
+| `--dur-fast` | 150ms | Colour changes and press feedback (chips, buttons scale to 96%) |
+| `--dur-base` | 240ms | Things arriving: list rows, the details sheet, the map preview card, the toast, switching tabs |
+| `--dur-slow` | 380ms | Springy confirmations: ticking a place off, pins appearing |
+| `--ease-out` | `cubic-bezier(.2,.8,.2,1)` | Entrances and slides |
+| `--ease-spring` | `cubic-bezier(.34,1.56,.64,1)` | Small overshoot for confirmations |
+
+The moments:
+- **Tick:** the circle pops and the check mark draws itself. The count on the Been tab bumps.
+- **Lists:** the first dozen rows rise in, 24ms apart, but only after you change a filter, tab or day. Live updates (the clock, your location) never replay this.
+- **Pins:** they pop in, rippling out from SoMa. Selecting one scales it up smoothly.
+- **Map camera:** it flies between areas when you switch days or tabs.
+- **Sheet:** it slides up to open and slides down to close. A swipe-down closes it from wherever your finger let go, and a short swipe springs back.
+- **Plan days:** the underline slides to the day you pick.

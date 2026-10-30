@@ -121,6 +121,18 @@
     me: null,
     mapBig: false,
   };
+  // One-shot animation cues, consumed by the next render. Renders also happen on a timer
+  // and on location updates, and those must not replay animations.
+  const fx = { list: true, tick: null };
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Restart a CSS animation on an element that stays in the DOM.
+  const replay = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+  // Stagger the first rows of a freshly rendered list.
+  function enterRows(listEl) {
+    if (!fx.list) return;
+    [...listEl.children].slice(0, 12).forEach((li, i) => { li.style.setProperty("--n", i); li.classList.add("enter"); });
+  }
+
   const saveUi = () => store.set("ui2", { tab: state.tab, kinds: [...state.kinds] });
 
   const SF_CENTER = { lat: 37.7749, lng: -122.4194 };
@@ -156,7 +168,7 @@
     const mins = walkMins(meters(origin(), p));
     const bits = [esc(sub ?? p.area)];
     if (st && st.text) bits.push(`<span class="st st-${st.cls}">${esc(st.text)}</span>`);
-    return `<li class="row k-${p.kind}${v ? " is-visited" : ""}${state.sel === p.id ? " is-sel" : ""}" data-id="${p.id}">
+    return `<li class="row k-${p.kind}${v ? " is-visited" : ""}${state.sel === p.id ? " is-sel" : ""}${fx.tick === p.id ? " pop" : ""}" data-id="${p.id}">
       <button type="button" class="row-main" data-open="${p.id}">
         <span class="row-top"><i class="dot"></i><span class="row-name">${esc(p.name)}</span><span class="row-walk">${walkText(mins)}</span></span>
         <span class="row-sub">${bits.join(" · ")}</span>
@@ -176,6 +188,7 @@
     const o = origin();
     const list = PLACES.filter(matches).map((p) => ({ p, d: meters(o, p) })).sort((a, b) => a.d - b.d);
     $("#list").innerHTML = list.map(({ p }) => rowHtml(p, status(p, now))).join("");
+    enterRows($("#list"));
     $("#list-empty").hidden = list.length > 0;
 
     const hint = $("#lochint");
@@ -190,8 +203,16 @@
 
   // ── Plan ─────────────────────────────────────────────────────────────────
   function renderPlan(now) {
-    $("#days").innerHTML = DAYS.map((d) => `<button type="button" class="day${d.date === now.date ? " is-today" : ""}" role="tab"
-      data-day="${d.date}" aria-selected="${d.date === state.day}">${esc(d.label.replace(/ (Oct|Nov)$/, ""))}</button>`).join("");
+    const daysEl = $("#days");
+    if (!daysEl.children.length) {
+      daysEl.innerHTML = DAYS.map((d) => `<button type="button" class="day" role="tab" data-day="${d.date}">${esc(d.label.replace(/ (Oct|Nov)$/, ""))}</button>`).join("")
+        + '<span class="days-ink" aria-hidden="true"></span>';
+    }
+    daysEl.querySelectorAll(".day").forEach((b) => {
+      b.setAttribute("aria-selected", String(b.dataset.day === state.day));
+      b.classList.toggle("is-today", b.dataset.day === now.date);
+    });
+    daysEl.style.setProperty("--i", DAYS.findIndex((x) => x.date === state.day));
 
     const d = DAYS.find((x) => x.date === state.day);
     const isToday = d.date === now.date;
@@ -211,13 +232,16 @@
           ${s.text ? `<p class="step-text">${esc(s.text)}</p>` : ""}
           ${(s.places || []).length ? `<ol class="list">${s.places.map(row).join("")}</ol>` : ""}
         </div>`).join("")}`;
+    if (fx.list) replay($("#dayplan"), "enter");
   }
 
   // ── Been ─────────────────────────────────────────────────────────────────
   let confirmClear = false;
   function renderBeen(now) {
     const ids = Object.keys(visited).filter((id) => byId[id]);
-    $("#been-count").textContent = ids.length ? ids.length : "";
+    const countEl = $("#been-count");
+    if (ids.length > (+countEl.textContent || 0)) replay(countEl, "bump");
+    countEl.textContent = ids.length ? ids.length : "";
     if (state.tab !== "been") return;
     const n = (k) => ids.filter((id) => byId[id].kind === k).length;
     const when = (iso) => new Date(iso).toLocaleString("en-GB", {
@@ -230,7 +254,7 @@
         <strong>${ids.length} ${ids.length === 1 ? "place" : "places"}</strong>
         <span>${Object.entries(KIND).map(([k, v]) => `<b class="k-${k}"><i class="dot"></i>${n(k)} ${v.label.toLowerCase()}</b>`).join("")}</span>
       </div>
-      <ol class="list">${sorted.map((id) => rowHtml(byId[id], null, `${byId[id].area} · ${when(visited[id])}`)).join("")}</ol>
+      <ol class="list" id="been-list">${sorted.map((id) => rowHtml(byId[id], null, `${byId[id].area} · ${when(visited[id])}`)).join("")}</ol>
       <div class="been-tools">
         <button type="button" class="link" id="btn-copy">Copy list</button>
         ${confirmClear
@@ -238,6 +262,7 @@
           : `<button type="button" class="link quiet" id="btn-clear">Untick all</button>`}
       </div>`
       : `<p class="empty">Nothing ticked yet. Tap the circle next to a place once you've been.</p>`;
+    if ($("#been-list")) enterRows($("#been-list"));
   }
 
   // ── Sheet (place details) ────────────────────────────────────────────────
@@ -280,8 +305,11 @@
       <a class="btn" href="${gmapsSearch(p)}" target="_blank" rel="noopener">${mapSvg}Maps</a>
       <button type="button" class="btn${v ? " done" : ""}" data-visit="${p.id}" aria-pressed="${v}">${checkSvg}Been here</button>`;
   }
-  let lastFocus = null;
+  let lastFocus = null, closeTimer = null;
   function openSheet(id) {
+    clearTimeout(closeTimer);
+    $("#sheet").classList.remove("is-closing"); $("#scrim").classList.remove("is-closing");
+    $("#sheet").style.transform = ""; $("#sheet").style.transition = "";
     sheetId = id;
     lastFocus = document.activeElement;
     select(id, { pan: true });
@@ -293,17 +321,24 @@
     $("#sheet-close").focus({ preventScroll: true });
   }
   function closeSheet() {
+    if (!sheetId) return;
     sheetId = null;
-    $("#sheet").hidden = true;
-    $("#scrim").hidden = true;
+    const sheet = $("#sheet"), scrim = $("#scrim");
+    sheet.classList.add("is-closing"); scrim.classList.add("is-closing");
+    closeTimer = setTimeout(() => {
+      sheet.hidden = true; scrim.hidden = true;
+      sheet.classList.remove("is-closing"); scrim.classList.remove("is-closing");
+      sheet.style.transform = ""; sheet.style.transition = "";
+    }, reducedMotion ? 0 : 200);
     renderPeek(sfNow());
     if (lastFocus && lastFocus.isConnected) lastFocus.focus({ preventScroll: true });
   }
 
   // ── Peek (pin tapped on the map) ─────────────────────────────────────────
+  let peekFor = null;
   function renderPeek(now) {
     const el = $("#peek");
-    if (!state.sel || sheetId) { el.hidden = true; return; }
+    if (!state.sel || sheetId) { el.hidden = true; peekFor = null; return; }
     const p = byId[state.sel];
     const st = status(p, now);
     const sub = [esc(p.area)];
@@ -316,6 +351,7 @@
       </button>
       <a class="btn primary small" href="${gmapsWalk(p)}" target="_blank" rel="noopener" aria-label="Walk to ${esc(p.name)} in Google Maps">${walkSvg}Walk</a>`;
     el.hidden = false;
+    if (peekFor !== state.sel) { peekFor = state.sel; replay(el, "enter"); }
   }
 
   // ── Map ──────────────────────────────────────────────────────────────────
@@ -339,15 +375,17 @@
   }).addTo(map);
 
   const markers = {};
-  function pinIcon(p, cls) {
+  // Pins pop in with a delay that grows with distance from SoMa, so they ripple outwards.
+  function pinIcon(p) {
+    const delay = Math.round(Math.min(450, meters(TRIP.base, p) / 22));
     return L.divIcon({
-      className: `pin k-${p.kind} ${cls}`,
-      html: `<span class="pin-b"><svg viewBox="0 0 24 24" aria-hidden="true">${KIND[p.kind].icon}</svg></span>`,
+      className: `pin k-${p.kind}${p.approx ? " is-approx" : ""}`,
+      html: `<span class="pin-b" style="animation-delay:${delay}ms"><svg viewBox="0 0 24 24" aria-hidden="true">${KIND[p.kind].icon}</svg></span>`,
       iconSize: [30, 30], iconAnchor: [15, 15],
     });
   }
   for (const p of PLACES) {
-    const m = L.marker([p.lat, p.lng], { icon: pinIcon(p, ""), title: p.name, riseOnHover: true });
+    const m = L.marker([p.lat, p.lng], { icon: pinIcon(p), title: p.name, riseOnHover: true });
     m.on("click", () => select(p.id, { from: "map" }));
     markers[p.id] = m;
   }
@@ -365,24 +403,24 @@
     for (const p of PLACES) {
       const m = markers[p.id];
       if (vis && !vis.has(p.id) && state.sel !== p.id) { if (map.hasLayer(m)) map.removeLayer(m); continue; }
-      const cls = [
-        visited[p.id] && "is-visited",
-        status(p, now).cls === "closed" && "is-closed",
-        foc && !foc.has(p.id) && "is-dim",
-        state.sel === p.id && "is-sel",
-        p.approx && "is-approx",
-      ].filter(Boolean).join(" ");
-      if (m._pdCls !== cls) { m.setIcon(pinIcon(p, cls)); m._pdCls = cls; }
-      m.setZIndexOffset(state.sel === p.id ? 1000 : foc && foc.has(p.id) ? 500 : 0);
       if (!map.hasLayer(m)) m.addTo(map);
+      const el = m.getElement();
+      el.classList.toggle("is-visited", !!visited[p.id]);
+      el.classList.toggle("is-closed", status(p, now).cls === "closed");
+      el.classList.toggle("is-dim", !!foc && !foc.has(p.id));
+      el.classList.toggle("is-sel", state.sel === p.id);
+      m.setZIndexOffset(state.sel === p.id ? 1000 : foc && foc.has(p.id) ? 500 : 0);
     }
   }
   function fitTo(ids, opts = {}) {
     const pts = [...ids].map((id) => byId[id]).filter(Boolean).map((p) => [p.lat, p.lng]);
     if (opts.withBase) pts.push([TRIP.base.lat, TRIP.base.lng]);
     if (!pts.length) return;
-    if (pts.length === 1) map.setView(pts[0], 16, { animate: !opts.instant });
-    else map.fitBounds(pts, { padding: [36, 36], maxZoom: 16, animate: !opts.instant });
+    if (opts.instant || reducedMotion) {
+      if (pts.length === 1) map.setView(pts[0], 16, { animate: false });
+      else map.fitBounds(pts, { padding: [36, 36], maxZoom: 16, animate: false });
+    } else if (pts.length === 1) map.flyTo(pts[0], 16, { duration: 0.6 });
+    else map.flyToBounds(pts, { padding: [36, 36], maxZoom: 16, duration: 0.6 });
   }
   function fitCurrent(instant) {
     const foc = focusIds();
@@ -437,10 +475,15 @@
   function toast(msg, action) {
     const el = $("#toast");
     el.innerHTML = `<span>${esc(msg)}</span>${action ? `<button type="button" id="toast-act">${esc(action.label)}</button>` : ""}`;
+    el.classList.remove("is-leaving");
     el.hidden = false;
-    if (action) $("#toast-act").onclick = () => { action.run(); el.hidden = true; };
+    const hide = () => {
+      el.classList.add("is-leaving");
+      toastTimer = setTimeout(() => { el.hidden = true; el.classList.remove("is-leaving"); }, reducedMotion ? 0 : 180);
+    };
+    if (action) $("#toast-act").onclick = () => { action.run(); clearTimeout(toastTimer); hide(); };
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { el.hidden = true; }, action ? 5000 : 3500);
+    toastTimer = setTimeout(hide, action ? 5000 : 3500);
   }
 
   // ── Been ─────────────────────────────────────────────────────────────────
@@ -456,6 +499,7 @@
       setVisited(id, false);
       toast(`Unticked ${p.name}`, { label: "Undo", run: () => { visited[id] = was; store.set("visited", visited); renderAll(); } });
     } else {
+      fx.tick = id;
       setVisited(id, true);
       navigator.vibrate?.(12);
       toast(`Been to ${p.name}`, { label: "Undo", run: () => setVisited(id, false) });
@@ -482,6 +526,7 @@
     renderMarkers(now);
     renderPeek(now);
     renderSheet(now);
+    fx.list = false; fx.tick = null;
   }
 
   // ── Events ───────────────────────────────────────────────────────────────
@@ -493,12 +538,15 @@
     if (t.dataset.kind) {
       const k = t.dataset.kind;
       if (state.kinds.has(k)) state.kinds.delete(k); else state.kinds.add(k);
-      saveUi(); renderAll(); return;
+      fx.list = true; saveUi(); renderAll(); return;
     }
-    if (t.dataset.day) { state.day = t.dataset.day; state.sel = null; renderAll(); fitCurrent(false); return; }
+    if (t.dataset.day) {
+      if (state.day === t.dataset.day) return;
+      state.day = t.dataset.day; state.sel = null; fx.list = true; renderAll(); fitCurrent(false); return;
+    }
     if (t.dataset.tab) {
       if (state.tab === t.dataset.tab) { $("#panel").scrollTo({ top: 0, behavior: "smooth" }); return; }
-      state.tab = t.dataset.tab; state.sel = null; confirmClear = false; saveUi();
+      state.tab = t.dataset.tab; state.sel = null; confirmClear = false; fx.list = true; saveUi();
       $("#panel").scrollTop = 0; renderAll();
       if (state.tab !== "explore" || !inSF()) fitCurrent(false);
       return;
@@ -533,6 +581,7 @@
     sheet.addEventListener("touchstart", (e) => {
       if (e.target.closest(".sheet-actions") || body.scrollTop > 0) { y0 = null; return; }
       y0 = e.touches[0].clientY; dy = 0;
+      sheet.style.transition = "none";
     }, { passive: true });
     sheet.addEventListener("touchmove", (e) => {
       if (y0 == null) return;
@@ -541,9 +590,10 @@
     }, { passive: true });
     sheet.addEventListener("touchend", () => {
       if (y0 == null) return;
-      sheet.style.transform = "";
-      if (dy > 90) closeSheet();
       y0 = null;
+      if (dy > 90) { closeSheet(); return; } // the closing animation carries on from where the finger let go
+      sheet.style.transition = "transform .25s cubic-bezier(.2,.8,.2,1)";
+      sheet.style.transform = "";
     });
   })();
 
