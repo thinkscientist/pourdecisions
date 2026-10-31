@@ -1,8 +1,8 @@
 // Pour Decisions service worker: keeps the app usable on patchy signal.
-// App files: served from cache, refreshed in the background.
+// App files: from the network when online (cache as the offline fallback).
 // Map: tiles, fonts and icons are cached as you browse, so areas you've already looked at
 // still draw offline. The style file is refreshed in the background so tile versions stay current.
-const APP = "pd-app-v18";
+const APP = "pd-app-v19";
 const TILES = "pd-tiles-v2";
 const TILE_LIMIT = 1500;
 const SHELL = [
@@ -47,12 +47,20 @@ self.addEventListener("fetch", (e) => {
   const isMapStyle = url.hostname === "tiles.openfreemap.org";
   if (!sameOrigin && !isFont && !isMapStyle) return;
 
+  // App files: network first, so every launch online gets one consistent version of all of
+  // them (cache-first could pair a new stylesheet with old code). The cache is the fallback
+  // offline, or when the network takes more than 4 seconds.
   e.respondWith(caches.open(APP).then(async (c) => {
-    const hit = await c.match(req, { ignoreSearch: sameOrigin && url.pathname.endsWith("/") });
-    const fresh = fetch(req).then((res) => {
+    const net = fetch(req, { cache: "no-cache" }).then((res) => {
       if (res.ok || res.type === "opaque") c.put(req, res.clone());
       return res;
-    }).catch(() => hit);
-    return hit || fresh;
+    });
+    const slow = new Promise((r) => setTimeout(r, 4000)).then(() => c.match(req, { ignoreSearch: sameOrigin && url.pathname.endsWith("/") }));
+    try {
+      const res = await Promise.race([net, slow.then((hit) => hit || net)]);
+      return res;
+    } catch {
+      return (await c.match(req, { ignoreSearch: sameOrigin && url.pathname.endsWith("/") })) || Response.error();
+    }
   }));
 });
