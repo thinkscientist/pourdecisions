@@ -631,3 +631,33 @@ const PHOTOS = {
   ] },
 };
 for (const p of window.PLACES) if (PHOTOS[p.id]) { p.photos = PHOTOS[p.id].urls; p.photoSite = PHOTOS[p.id].site; }
+
+// ── Public transport ─────────────────────────────────────────────────────
+// Rail and cable car stops worth riding on this trip (no buses: thousands of stops would
+// bury the map). Positions geocoded from OpenStreetMap on 31 Oct 2026, by station name.
+// lines: which systems stop here. BART = regional rail, incl. SFO; Muni = Muni Metro
+// subway/light rail (T = Central Subway); Cable = cable car; Caltrain = Peninsula rail.
+window.STATIONS = [
+  { id: "embarcadero", name: "Embarcadero", lines: ["BART", "Muni"], lat: 37.79285, lng: -122.39689 },
+  { id: "montgomery", name: "Montgomery St", lines: ["BART", "Muni"], lat: 37.78952, lng: -122.40105 },
+  { id: "powell", name: "Powell St", lines: ["BART", "Muni", "Cable"], note: "turnaround at Powell & Market", lat: 37.78492, lng: -122.40693 },
+  { id: "civic-center", name: "Civic Center", lines: ["BART", "Muni"], lat: 37.77936, lng: -122.41397 },
+  { id: "16th-mission", name: "16th St Mission", lines: ["BART"], lat: 37.76507, lng: -122.41968 },
+  { id: "24th-mission", name: "24th St Mission", lines: ["BART"], lat: 37.75226, lng: -122.41845 },
+  { id: "glen-park", name: "Glen Park", lines: ["BART"], lat: 37.73312, lng: -122.43385 },
+  { id: "balboa-park", name: "Balboa Park", lines: ["BART", "Muni"], lat: 37.72143, lng: -122.44755 },
+  { id: "van-ness", name: "Van Ness", lines: ["Muni"], lat: 37.77519, lng: -122.41927 },
+  { id: "church", name: "Church", lines: ["Muni"], lat: 37.76727, lng: -122.42926 },
+  { id: "castro", name: "Castro", lines: ["Muni"], lat: 37.76260, lng: -122.43529 },
+  { id: "forest-hill", name: "Forest Hill", lines: ["Muni"], lat: 37.74799, lng: -122.45912 },
+  { id: "west-portal", name: "West Portal", lines: ["Muni"], lat: 37.74098, lng: -122.46587 },
+  { id: "chinatown-rose-pak", name: "Chinatown–Rose Pak", lines: ["Muni"], note: "Central Subway (T)", lat: 37.79481, lng: -122.40807 },
+  { id: "union-square", name: "Union Square/Market St", lines: ["Muni"], note: "Central Subway (T)", lat: 37.78740, lng: -122.40680 },
+  { id: "yerba-buena", name: "Yerba Buena/Moscone", lines: ["Muni"], note: "Central Subway (T)", lat: 37.78223, lng: -122.40173 },
+  { id: "4th-brannan", name: "4th & Brannan", lines: ["Muni"], note: "Central Subway (T)", lat: 37.77868, lng: -122.39699 },
+  { id: "4th-king", name: "4th & King", lines: ["Caltrain", "Muni"], lat: 37.77602, lng: -122.39364 },
+  { id: "cc-hyde-beach", name: "Hyde & Beach", lines: ["Cable"], note: "Powell–Hyde line", lat: 37.80704, lng: -122.42124 },
+  { id: "cc-taylor-bay", name: "Taylor & Bay", lines: ["Cable"], note: "Powell–Mason line", lat: 37.80523, lng: -122.41524 },
+  { id: "cc-california-drumm", name: "California & Drumm", lines: ["Cable"], note: "California line", lat: 37.79371, lng: -122.39622 },
+  { id: "cc-california-van-ness", name: "California & Van Ness", lines: ["Cable"], note: "California line", lat: 37.79045, lng: -122.42187 },
+];

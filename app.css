@@ -223,6 +223,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 }
 .mapbtn svg { width: 20px; height: 20px; }
 #btn-locate.on { color: var(--accent); }
+#btn-transit[aria-pressed="false"] { color: var(--text-muted); }
+#btn-transit[aria-pressed="false"] svg { opacity: .55; }
 #btn-locate.on svg { fill: currentColor; }
 
 /* pins */
@@ -259,6 +261,27 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .zoomed-out .pin.is-visited .pin-b::after { width: 9px; height: 9px; right: -5px; bottom: -4px; background-size: 7px; border-width: 1px; }
 .zoomed-out .pin.is-sel .pin-b { transform: scale(1.6); }
 
+/* Train and cable car stops: a small dark badge with the system letters, then the name.
+   Square and dark like the SoMa base marker, so they never read as a venue pin. */
+.stn { display: flex; align-items: center; gap: 4px; cursor: pointer; z-index: 0; }
+.stn-chip {
+  display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; flex: none;
+  border-radius: 5px; background: var(--text); color: var(--bg);
+  font: 800 9.5px/1 var(--font-body); letter-spacing: .02em; white-space: nowrap;
+  box-shadow: 0 1px 3px rgb(0 0 0 / .3);
+}
+.stn-chip.cable { background: var(--surface); color: var(--text); box-shadow: 0 0 0 1.5px var(--text), 0 1px 3px rgb(0 0 0 / .25); }
+.stn-name {
+  display: none; font: 700 11px/1.1 var(--font-body); color: var(--text); white-space: nowrap;
+  text-shadow: 0 0 2px var(--map-land), 0 0 2px var(--map-land), 0 0 3px var(--map-land);
+}
+.zoomed-in .stn-name { display: block; }
+.zoomed-out .stn { display: none; }
+.station-line { display: flex; gap: var(--sp-2); align-items: center; font-size: var(--fs-sm); margin: 0; }
+.station-line .stn-chip { box-shadow: none; }
+.station-peek { cursor: default; }
+.station-peek .row-sub { white-space: normal; }
+.station-peek .row-top { gap: 6px; }
 .me-dot {
   width: 16px; height: 16px; border-radius: 50%;
   background: var(--accent); border: 3px solid #fff;
@@ -505,7 +528,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   display: flex; flex-direction: column; gap: var(--sp-4);
 }
 .sheet-actions {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2);
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-2);
   padding: var(--sp-3) var(--gutter-r) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px)) var(--gutter-l);
   border-top: 1px solid var(--line);
 }

@@ -3,6 +3,7 @@
   "use strict";
 
   const PLACES = window.PLACES;
+  const STATIONS = window.STATIONS || [];
   const TRIP = window.TRIP;
   const byId = Object.fromEntries(PLACES.map((p) => [p.id, p]));
   const $ = (s) => document.querySelector(s);
@@ -112,6 +113,8 @@
   const state = {
     tab: saved.tab === "explore" ? "explore" : saved.tab ? "plan" : "explore",
     kinds: new Set(saved.kinds || []), // empty = everything
+    transit: saved.transit !== false, // train and cable car stops on the map
+    selStation: null,
     q: "",
     sel: null,
     me: null,
@@ -129,7 +132,7 @@
     [...listEl.children].slice(0, 12).forEach((li, i) => { li.style.setProperty("--n", i); li.classList.add("enter"); });
   }
 
-  const saveUi = () => store.set("ui2", { tab: state.tab, kinds: [...state.kinds] });
+  const saveUi = () => store.set("ui2", { tab: state.tab, kinds: [...state.kinds], transit: state.transit });
 
   const SF_CENTER = { lat: 37.7749, lng: -122.4194 };
   const inSF = () => state.me && meters(state.me, SF_CENTER) < 30000;
@@ -144,10 +147,31 @@
     drinks: { label: "Drink", icon: '<path d="M4.5 4h15L12 12.5z"/><path d="M12 12.5V20M8 20h8"/>' },
   };
   const gmapsSearch = (p) => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(p.q);
+  const gmapsTransit = (p) => "https://www.google.com/maps/dir/?api=1&travelmode=transit&destination=" + encodeURIComponent(p.q);
+  const stationQuery = (s) => `${s.lines.includes("Cable") ? `Cable car stop ${s.name}` : `${s.name} station`}, San Francisco, CA`;
+  // Transit systems: the letter on a station badge and the name in words.
+  const SYSTEM = {
+    BART: { letter: "B", name: "BART" },
+    Muni: { letter: "M", name: "Muni Metro" },
+    Caltrain: { letter: "CT", name: "Caltrain" },
+    Cable: { letter: "C", name: "Cable car" },
+  };
+  const linesText = (s) => s.lines.map((l) => SYSTEM[l].name).join(" · ");
+  // The nearest train station (cable car stops aren't counted: they're a ride, not a hub).
+  function nearestStation(p) {
+    let best = null, bestM = Infinity;
+    for (const s of STATIONS) {
+      if (s.lines.length === 1 && s.lines[0] === "Cable") continue;
+      const m = meters(p, s);
+      if (m < bestM) { best = s; bestM = m; }
+    }
+    return best && { s: best, mins: walkMins(bestM) };
+  }
   const gmapsWalk = (p) => "https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=" + encodeURIComponent(p.q);
   const checkSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5.5 12.5 4 4L18.5 8"/></svg>';
   const plusSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
   const walkSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13" cy="4.5" r="1.8"/><path d="m9 21 2.5-6.5L14 17v4M7 12.5l2.5-4.5 4 1.5 2.5 3.5M11.5 14.5 13 9"/></svg>';
+  const trainSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="13" rx="3"/><path d="M6 10h12M9 13.5h.01M15 13.5h.01M9 16l-2 4M15 16l2 4"/></svg>';
   const mapSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/></svg>';
 
   function matches(p) {
@@ -306,6 +330,9 @@
           return `<tr class="${date === now.date ? "today" : ""}"><td>${dayLabel(date)}</td><td class="${h.cls}">${esc(h.text)}</td></tr>`;
         }).join("")}</tbody></table>` : `<p class="tags">Not listed. Check Google Maps before you go.</p>`}
       </div>
+      ${(() => { const n = nearestStation(p); return n && n.mins <= 25 ? `<div class="d-sec"><h3>Nearest station</h3>
+        <p class="station-line"><span class="stn-chip" aria-hidden="true">${n.s.lines.map((l) => SYSTEM[l].letter).join(" ")}</span>
+          <span><b>${esc(n.s.name)}</b> · ${esc(linesText(n.s))} · ${walkText(n.mins)} walk</span></p></div>` : ""; })()}
       <div class="d-sec"><h3>Address</h3>
         <p class="addr">${esc(p.addr || p.area)}${p.approx ? " <small>· pin marks the neighbourhood</small>" : ""}</p>
       </div>
@@ -321,7 +348,8 @@
     }
     $("#sheet-actions").innerHTML = `
       <a class="btn primary" href="${gmapsWalk(p)}" target="_blank" rel="noopener">${walkSvg}Walk</a>
-      <a class="btn" href="${gmapsSearch(p)}" target="_blank" rel="noopener">${mapSvg}Google Maps</a>`;
+      <a class="btn" href="${gmapsTransit(p)}" target="_blank" rel="noopener" aria-label="Public transport directions in Google Maps">${trainSvg}Transit</a>
+      <a class="btn" href="${gmapsSearch(p)}" target="_blank" rel="noopener" aria-label="Open in Google Maps">${mapSvg}Maps</a>`;
   }
   // ── About ────────────────────────────────────────────────────────────────
   const ABOUT = "about";
@@ -385,6 +413,19 @@
   let peekFor = null;
   function renderPeek(now) {
     const el = $("#peek");
+    if (state.selStation && !sheetId) {
+      const s = STATIONS.find((x) => x.id === state.selStation);
+      el.className = "peek";
+      el.innerHTML = `
+        <div class="row-main station-peek">
+          <span class="row-top"><span class="stn-chip" aria-hidden="true">${s.lines.map((l) => SYSTEM[l].letter).join(" ")}</span><span class="row-name">${esc(s.name)}</span></span>
+          <span class="row-sub">${walkText(walkMins(meters(origin(), s)))} · ${esc(linesText(s))}${s.note ? ` (${esc(s.note)})` : ""}</span>
+        </div>
+        <a class="btn small" href="https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${encodeURIComponent(stationQuery(s))}" target="_blank" rel="noopener" aria-label="Walk to ${esc(s.name)} in Google Maps">${walkSvg}Walk</a>`;
+      el.hidden = false;
+      if (peekFor !== s.id) { peekFor = s.id; replay(el, "enter"); }
+      return;
+    }
     if (!state.sel || sheetId) { el.hidden = true; peekFor = null; return; }
     const p = byId[state.sel];
     const st = status(p, now);
@@ -529,18 +570,54 @@
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { if (map.isStyleLoaded()) applyMapTheme(); });
 
   // Small, glyph-free pins when the whole city is in view.
-  const zoomClass = () => $("#map").classList.toggle("zoomed-out", map.getZoom() < 13);
+  const zoomClass = () => {
+    const z = map.getZoom(), m = $("#map");
+    m.classList.toggle("zoomed-out", z < 13);
+    m.classList.toggle("zoomed-in", z >= 14.5); // station names show from here
+  };
   map.on("zoom", zoomClass);
 
+  // Add a marker to the map, keeping its own accessible name: MapLibre labels every
+  // marker "Map marker" each time it's added, so screen readers would never hear the name.
+  function addMarker(m, label) {
+    m.addTo(map);
+    if (label) m.getElement().setAttribute("aria-label", label);
+    else m.getElement().setAttribute("aria-hidden", "true");
+    return m;
+  }
   // A DOM element pinned to a spot on the map.
-  const pinAt = (lng, lat, el, show = true) => {
+  const pinAt = (lng, lat, el, visible = true, label) => {
     const m = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]);
-    if (show) m.addTo(map);
+    if (visible) addMarker(m, label);
     return m;
   };
   const html = (s) => { const d = document.createElement("div"); d.innerHTML = s.trim(); return d.firstChild; };
 
-  pinAt(TRIP.base.lng, TRIP.base.lat, html('<span class="base-pin" title="Your SoMa base"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg></span>'));
+  // Train and cable car stops: small square badges, so they never read as a venue pin.
+  // Hidden when the whole city is in view; names appear once you zoom in.
+  const stationMarkers = STATIONS.map((s) => {
+    const el = html(`<div class="stn" role="button" tabindex="0" aria-label="${esc(s.name)}: ${esc(linesText(s))}">
+      <span class="stn-chip${s.lines.length === 1 && s.lines[0] === "Cable" ? " cable" : ""}">${s.lines.map((l) => SYSTEM[l].letter).join(" ")}</span>
+      <span class="stn-name">${esc(s.name)}</span></div>`);
+    const pick = (e) => {
+      e.stopPropagation();
+      state.sel = null; state.selStation = s.id;
+      map.easeTo({ center: [s.lng, s.lat], offset: [0, -30], duration: anim(450) });
+      renderAll();
+    };
+    el.addEventListener("click", pick);
+    el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(e); } });
+    return new maplibregl.Marker({ element: el, anchor: "left", offset: [-9, 0] }).setLngLat([s.lng, s.lat]);
+  });
+  function renderStations() {
+    STATIONS.forEach((s, i) => { const m = stationMarkers[i]; if (state.transit) addMarker(m, `${s.name} station: ${linesText(s)}`); else m.remove(); });
+    const b = $("#btn-transit");
+    b.setAttribute("aria-pressed", String(state.transit));
+    b.setAttribute("aria-label", state.transit ? "Hide train and cable car stops" : "Show train and cable car stops");
+  }
+  renderStations();
+
+  pinAt(TRIP.base.lng, TRIP.base.lat, html('<span class="base-pin" title="Your SoMa base"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg></span>'), true, "Your SoMa base");
 
   const markers = {};
   // Pins pop in with a delay that grows with distance from SoMa, so they ripple outwards.
@@ -550,7 +627,7 @@
       <span class="pin-b" style="animation-delay:${delay}ms"><svg viewBox="0 0 24 24" aria-hidden="true">${KIND[p.kind].icon}</svg></span></div>`);
     el.addEventListener("click", (e) => { e.stopPropagation(); select(p.id, { from: "map" }); });
     el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSheet(p.id); } });
-    markers[p.id] = { m: pinAt(p.lng, p.lat, el, false), el, on: false };
+    markers[p.id] = { m: pinAt(p.lng, p.lat, el, false), el, on: false, label: p.name };
   }
 
   // Nearby shows the filtered places; Plan shows every pin and brings yours forward.
@@ -577,7 +654,7 @@
             mk.el.firstElementChild.style.animationDelay = `${Math.round(Math.min(420, Math.hypot(a.x - c.x, a.y - c.y) * 1.4))}ms`;
           }
           mk.el.classList.remove("is-leaving"); // swapping back to the pop-in animation replays it
-          if (!mk.inMap) { mk.m.addTo(map); mk.inMap = true; }
+          if (!mk.inMap) { addMarker(mk.m, mk.label); mk.inMap = true; }
         } else {
           // Shrink away, then leave the map.
           mk.el.classList.add("is-leaving");
@@ -613,7 +690,7 @@
   }
 
   function select(id, { from, pan } = {}) {
-    state.sel = id;
+    state.sel = id; state.selStation = null;
     const p = byId[id];
     // Nudge the pin above centre so the preview card doesn't cover it.
     if (from === "map" || pan) map.easeTo({ center: [p.lng, p.lat], offset: [0, -30], duration: anim(450) });
@@ -628,7 +705,7 @@
       }
     }
   }
-  map.on("click", () => { if (state.sel && !sheetId) { state.sel = null; renderAll(); } });
+  map.on("click", () => { if ((state.sel || state.selStation) && !sheetId) { state.sel = null; state.selStation = null; renderAll(); } });
 
   // ── Location ─────────────────────────────────────────────────────────────
   let watchId = null, meMarker = null, firstFix = true, lastRenderAt = null;
@@ -660,7 +737,7 @@
     firstFix = true;
     watchId = navigator.geolocation.watchPosition((pos) => {
       state.me = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
-      if (!meMarker) meMarker = pinAt(state.me.lng, state.me.lat, html('<div class="me-dot"></div>'));
+      if (!meMarker) meMarker = pinAt(state.me.lng, state.me.lat, html('<div class="me-dot"></div>'), true, "You are here");
       else meMarker.setLngLat([state.me.lng, state.me.lat]);
       drawAccuracy();
       if (firstFix) {
@@ -787,6 +864,12 @@
     }
     switch (t.id) {
       case "btn-locate": case "btn-locprompt": startWatch(true); return;
+      case "btn-transit":
+        state.transit = !state.transit;
+        if (!state.transit) state.selStation = null;
+        saveUi(); renderStations(); renderAll();
+        toast(state.transit ? "Showing train and cable car stops" : "Train and cable car stops hidden");
+        return;
       case "sheet-close": closeSheet(); return;
       case "btn-clear": confirmClear = true; renderAll(); return;
       case "btn-clear-no": confirmClear = false; renderAll(); return;
