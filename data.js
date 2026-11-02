@@ -474,6 +474,18 @@ window.PLACES = [
     q: "Yo También Cantina, Inner Sunset, San Francisco, CA",
   },
 
+  // ── Added on request ────────────────────────────────────────────────────
+  {
+    id: "mensho", name: "Mensho Tokyo", kind: "food",
+    area: "Lower Nob Hill", addr: "672 Geary St", price: "$$",
+    blurb: "The first U.S. outpost of the Tokyo ramen shop, in the Michelin Guide since 2017. Expect a line at peak times.",
+    order: "Signature Toripaitan (creamy chicken ramen), or the Duck Matcha ramen. Vegan tantanmen if you're plant-based.",
+    tags: ["Walk-in", "Expect a line"],
+    hours: { mon: "17:00-22:00", tue: "17:00-22:00", wed: "17:00-22:00", thu: "17:00-22:00", fri: "16:00-23:00", sat: "16:00-23:00" },
+    hoursNote: "Hours from Mensho's own site (checked 2 Nov 2026), which doesn't list Sunday. It says there's no regular day off, so Sunday is likely open; check before you go.",
+    q: "Mensho Tokyo, 672 Geary St, San Francisco, CA",
+  },
+
   // ── Outside the 38, flagged in the guide ───────────────────────────────
   {
     id: "verjus", name: "Verjus", kind: "drinks",
@@ -530,6 +542,7 @@ const COORDS = {
   "beit-rima": [37.76595, -122.44967], "fikscue": [37.76878, -122.38666],
   "yo-tambien": [37.76515, -122.46021], "verjus": [37.79582, -122.40253],
   "joujou": [37.76966, -122.40379],
+  "mensho": [37.78670, -122.41432],
 };
 
 // Street addresses the guide leaves out, taken from the same map data.
