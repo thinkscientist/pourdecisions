@@ -81,3 +81,7 @@ Up to three photos per place, taken from the venue's own website and chosen by h
 ## Public transport
 
 Train and cable car stops sit on the map as small dark rounded-square badges carrying the system letters: **B** BART, **M** Muni Metro (including the Central Subway), **CT** Caltrain, **C** cable car (outlined). Square and dark like the SoMa base marker, they never read as venue pins, which are round and coloured. They're hidden when the whole city is in view, and their names appear once you zoom in. The train button on the map shows or hides them, and the choice is remembered. Tapping a stop shows its lines and how far it is to walk there. A place's details page names its nearest train station when it's within about 25 minutes on foot, and the **Transit** button opens Google Maps public transport directions, which covers buses too. Buses aren't drawn on the map: thousands of stops would bury it.
+
+## Cities
+
+The app covers more than one city (`window.CITIES` in `data.js`; Birmingham in `data-birmingham.js`). Each city has a name, time zone, centre and walking "base". The tagline's second line is the city switch: the city name in the accent colour with a small swap arrow; tapping it moves to the next city, jumps the map (no flying across an ocean) and shows a toast. San Francisco's train and cable car stops, and the transit button, only appear in San Francisco. Every place's open/closed status uses its own city's clock.

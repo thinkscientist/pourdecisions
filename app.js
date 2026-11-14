@@ -5,6 +5,7 @@
   const PLACES = window.PLACES;
   const STATIONS = window.STATIONS || [];
   const TRIP = window.TRIP;
+  const CITIES = window.CITIES;
   const byId = Object.fromEntries(PLACES.map((p) => [p.id, p]));
   const $ = (s) => document.querySelector(s);
 
@@ -17,23 +18,24 @@
     set(k, v) { try { localStorage.setItem("pd." + k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
   };
 
-  // ── Time, always in San Francisco ────────────────────────────────────────
+  // ── Time, always local to the place's city ───────────────────────────────
   const WD = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-  const sfParts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
-  });
-  // ?now=2026-10-31T10:30 pins the clock to a San Francisco time, for previewing a trip day.
+  const partsFor = {};
+  // ?now=2026-10-31T10:30 pins the clock to that local time, for previewing a trip day.
   const nowParam = new URLSearchParams(location.search).get("now");
 
-  function sfNow() {
+  function cityNow(city = state.city) {
     if (nowParam && /^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(nowParam)) {
       const [date, t] = nowParam.split("T");
       const [h, m] = t.split(":").map(Number);
-      return { date, mins: h * 60 + m, pinned: true };
+      return { date, mins: h * 60 + m, pinned: true, city };
     }
-    const p = Object.fromEntries(sfParts.formatToParts(new Date()).map((x) => [x.type, x.value]));
-    return { date: `${p.year}-${p.month}-${p.day}`, mins: (+p.hour % 24) * 60 + +p.minute };
+    const tz = CITIES[city].tz;
+    const f = partsFor[tz] || (partsFor[tz] = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    }));
+    const p = Object.fromEntries(f.formatToParts(new Date()).map((x) => [x.type, x.value]));
+    return { date: `${p.year}-${p.month}-${p.day}`, mins: (+p.hour % 24) * 60 + +p.minute, city };
   }
   const wdOf = (date) => WD[new Date(date + "T12:00:00Z").getUTCDay()];
   const dayLabel = (date) => new Date(date + "T12:00:00Z").toLocaleDateString("en-GB",
@@ -70,6 +72,7 @@
   }
   // Status right now. Unknown hours return text "" so lists stay quiet.
   function status(p, now) {
+    if (now.city && p.city !== now.city) now = cityNow(p.city); // each place on its own city's clock
     const spec = specFor(p, now.date);
     if (!spec) return { cls: "unknown", text: "" };
     if (spec === "closed") return { cls: "closed", text: "Closed today" };
@@ -119,6 +122,7 @@
     sel: null,
     me: null,
     collapsed: false, // list drawer slid down to just its title row
+    city: CITIES[saved.city] ? saved.city : "sf",
   };
   // One-shot animation cues, consumed by the next render. Renders also happen on a timer
   // and on location updates, and those must not replay animations.
@@ -132,11 +136,12 @@
     [...listEl.children].slice(0, 12).forEach((li, i) => { li.style.setProperty("--n", i); li.classList.add("enter"); });
   }
 
-  const saveUi = () => store.set("ui2", { tab: state.tab, kinds: [...state.kinds], transit: state.transit });
+  const saveUi = () => store.set("ui2", { tab: state.tab, kinds: [...state.kinds], transit: state.transit, city: state.city });
 
-  const SF_CENTER = { lat: 37.7749, lng: -122.4194 };
-  const inSF = () => state.me && meters(state.me, SF_CENTER) < 30000;
-  const origin = () => (inSF() ? state.me : TRIP.base);
+  // The city you're looking at. Distances run from you when you're in it, else from its base.
+  const city = () => CITIES[state.city];
+  const inCity = () => state.me && meters(state.me, city().center) < 40000;
+  const origin = () => (inCity() ? state.me : city().base);
 
   // ── Helpers ──────────────────────────────────────────────────────────────
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -175,6 +180,7 @@
   const mapSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/></svg>';
 
   function matches(p) {
+    if (p.city !== state.city) return false;
     if (state.kinds.size && !state.kinds.has(p.kind)) return false;
     if (state.q) {
       const hay = fold([p.name, p.area, p.blurb, p.order, p.addr].join(" "));
@@ -227,19 +233,20 @@
     $("#list-empty").hidden = list.length > 0;
 
     const hint = $("#lochint");
-    hint.hidden = inSF();
-    if (!inSF()) {
+    hint.hidden = inCity();
+    if (!inCity()) {
       hint.innerHTML = state.me
-        ? "Walking times are from SoMa until you're in SF."
-        : 'Walking times from SoMa. <button type="button" class="link" id="btn-locprompt">Use my location</button>';
+        ? `Walking times are from ${esc(city().base.name)} until you're in ${esc(city().short)}.`
+        : `Walking times from ${esc(city().base.name)}. <button type="button" class="link" id="btn-locprompt">Use my location</button>`;
     }
   }
 
   // ── Plan ─────────────────────────────────────────────────────────────────
   // Your own list: still to go (nearest first), then where you've been (latest first).
   let confirmClear = false;
-  const planIds = () => Object.keys(planned).filter((id) => byId[id] && !visited[id]);
-  const beenIds = () => Object.keys(visited).filter((id) => byId[id]);
+  // Plan shows the city you're looking at.
+  const planIds = () => Object.keys(planned).filter((id) => byId[id] && byId[id].city === state.city && !visited[id]);
+  const beenIds = () => Object.keys(visited).filter((id) => byId[id] && byId[id].city === state.city);
   function renderPlan(now) {
     const o = origin();
     const toGo = planIds().map((id) => byId[id]).sort((a, b) => meters(o, a) - meters(o, b));
@@ -250,7 +257,7 @@
     if (state.tab !== "plan") return;
 
     const when = (iso) => new Date(iso).toLocaleString("en-GB", {
-      timeZone: "America/Los_Angeles", weekday: "short", hour: "numeric", minute: "2-digit", hour12: true,
+      timeZone: city().tz, weekday: "short", hour: "numeric", minute: "2-digit", hour12: true,
     }).replace(/ (am|pm)/, "$1");
 
     if (!toGo.length && !been.length) {
@@ -266,7 +273,7 @@
     $("#plan").innerHTML = `
       <div class="plan-head">
         <h2>Your plan</h2>
-        <p>${toGo.length ? `${toGo.length} to go · ${inSF() ? "nearest first" : "nearest to SoMa first"}` : "Nothing left to go"}${been.length ? ` · ${been.length} been` : ""}</p>
+        <p>${toGo.length ? `${toGo.length} to go · ${inCity() ? "nearest first" : `nearest to ${esc(city().base.name)} first`}` : "Nothing left to go"}${been.length ? ` · ${been.length} been` : ""}</p>
       </div>
       ${toGo.length
         ? `<ol class="list" id="togo-list">${toGo.map((p) => rowHtml(p, status(p, now), null, "been")).join("")}</ol>`
@@ -313,7 +320,7 @@
       ${photos}
       <div>
         <h2 class="d-name" id="sheet-title">${esc(p.name)}</h2>
-        <div class="d-meta"><i class="dot"></i>${KIND[p.kind].label} · ${esc(p.area)}${p.price ? ` · ${esc(p.price)}` : ""} · ${walkText(mins)} walk${inSF() ? "" : " from SoMa"}</div>
+        <div class="d-meta"><i class="dot"></i>${KIND[p.kind].label} · ${esc(p.area)}${p.price ? ` · ${esc(p.price)}` : ""} · ${walkText(mins)} walk${inCity() ? "" : ` from ${esc(CITIES[p.city].base.name)}`}</div>
         ${st.text ? `<div class="d-meta"><span class="st st-${st.cls}">${esc(st.text)}</span></div>` : ""}
       </div>
       <div class="d-toggles">
@@ -358,9 +365,9 @@
     $("#sheet").className = "sheet";
     $("#sheet-body").innerHTML = `
       <div><h2 class="d-name" id="sheet-title">About Pour Decisions</h2>
-        <div class="d-meta">A free personal project for walking around San Francisco, 31 Oct – 3 Nov 2026.</div></div>
+        <div class="d-meta">A free personal project for finding coffee and food in San Francisco and Birmingham.</div></div>
       <div class="d-sec"><h3>Check before you go</h3>
-        <p>Hours, closures and dishes come from a guide prepared on 30 October 2026 and can change, especially around holidays. Check the venue's own site or Google Maps before you set off. Nothing here is a reservation.</p></div>
+        <p>San Francisco hours, closures and dishes come from a guide prepared on 30 October 2026; Birmingham picks come from Time Out and Visit Birmingham guides, without opening hours. All of it can change. Check the venue's own site or Google Maps before you set off. Nothing here is a reservation.</p></div>
       <div class="d-sec"><h3>Not affiliated</h3>
         <p>This app isn't affiliated with or endorsed by any of the places listed. Photos belong to the venues and load from their own websites. To have a photo or listing removed, <a class="link" href="${REPO}/issues" target="_blank" rel="noopener">open an issue on GitHub</a>.</p></div>
       <div class="d-sec"><h3>Your privacy</h3>
@@ -391,7 +398,7 @@
     $("#peek").hidden = true;
     $("#scrim").hidden = false;
     $("#sheet").hidden = false;
-    renderSheet(sfNow());
+    renderSheet(cityNow());
     $("#sheet-body").scrollTop = 0;
     $("#sheet-close").focus({ preventScroll: true });
   }
@@ -405,7 +412,7 @@
       sheet.classList.remove("is-closing"); scrim.classList.remove("is-closing");
       sheet.style.transform = ""; sheet.style.transition = "";
     }, reducedMotion ? 0 : 200);
-    renderPeek(sfNow());
+    renderPeek(cityNow());
     if (lastFocus && lastFocus.isConnected) lastFocus.focus({ preventScroll: true });
   }
 
@@ -490,7 +497,7 @@
 
   let drag = null, ignoreClickUntil = 0;
   brand.addEventListener("pointerdown", (e) => {
-    if (wide() || e.button > 0) return;
+    if (wide() || e.button > 0 || e.target.closest("#city-switch")) return;
     drag = { id: e.pointerId, y0: e.clientY, last: e.clientY, t: e.timeStamp, v: 0, moved: false,
       from: state.collapsed ? collapsedY() : 0, max: collapsedY() };
     brand.setPointerCapture(e.pointerId); // keep following even once the finger leaves the title row
@@ -524,7 +531,7 @@
   }
   brand.addEventListener("pointerup", endDrag);
   brand.addEventListener("pointercancel", endDrag);
-  brand.addEventListener("click", () => { if (performance.now() > ignoreClickUntil && !wide()) setCollapsed(!state.collapsed); });
+  brand.addEventListener("click", (e) => { if (!e.target.closest("#city-switch") && performance.now() > ignoreClickUntil && !wide()) setCollapsed(!state.collapsed); });
   const anim = (ms) => (reducedMotion ? 0 : ms);
 
   function applyMapTheme() {
@@ -610,19 +617,23 @@
     return new maplibregl.Marker({ element: el, anchor: "left", offset: [-9, 0] }).setLngLat([s.lng, s.lat]);
   });
   function renderStations() {
-    STATIONS.forEach((s, i) => { const m = stationMarkers[i]; if (state.transit) addMarker(m, `${s.name} station: ${linesText(s)}`); else m.remove(); });
+    const on = state.transit && state.city === "sf"; // the stops are San Francisco's
+    STATIONS.forEach((s, i) => { const m = stationMarkers[i]; if (on) addMarker(m, `${s.name} station: ${linesText(s)}`); else m.remove(); });
     const b = $("#btn-transit");
+    b.hidden = state.city !== "sf";
     b.setAttribute("aria-pressed", String(state.transit));
     b.setAttribute("aria-label", state.transit ? "Hide train and cable car stops" : "Show train and cable car stops");
   }
   renderStations();
 
-  pinAt(TRIP.base.lng, TRIP.base.lat, html('<span class="base-pin" title="Your SoMa base"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg></span>'), true, "Your SoMa base");
+  for (const c of Object.values(CITIES)) {
+    pinAt(c.base.lng, c.base.lat, html(`<span class="base-pin" title="${esc(c.base.name)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg></span>`), true, `${c.base.name}: where walking times start in ${c.name}`);
+  }
 
   const markers = {};
-  // Pins pop in with a delay that grows with distance from SoMa, so they ripple outwards.
+  // Pins pop in with a delay that grows with distance from their city's base, so they ripple outwards.
   for (const p of PLACES) {
-    const delay = Math.round(Math.min(450, meters(TRIP.base, p) / 22));
+    const delay = Math.round(Math.min(450, meters(CITIES[p.city].base, p) / 22));
     const el = html(`<div class="pin k-${p.kind}${p.approx ? " is-approx" : ""}" role="button" tabindex="0" aria-label="${esc(p.name)}">
       <span class="pin-b" style="animation-delay:${delay}ms"><svg viewBox="0 0 24 24" aria-hidden="true">${KIND[p.kind].icon}</svg></span></div>`);
     el.addEventListener("click", (e) => { e.stopPropagation(); select(p.id, { from: "map" }); });
@@ -673,7 +684,7 @@
   }
   function fitTo(ids, opts = {}) {
     const pts = [...ids].map((id) => byId[id]).filter(Boolean).map((p) => [p.lng, p.lat]);
-    if (opts.withMe && inSF()) pts.push([state.me.lng, state.me.lat]);
+    if (opts.withMe && inCity()) pts.push([state.me.lng, state.me.lat]);
     if (!pts.length) return;
     const duration = opts.instant ? 0 : anim(700);
     if (pts.length === 1) { map.flyTo({ center: pts[0], zoom: 15.5, duration }); return; }
@@ -686,7 +697,10 @@
       const ids = planIds().length ? planIds() : beenIds();
       if (ids.length) return fitTo(ids, { instant, withMe: true });
     }
-    fitTo(visibleIds() || PLACES.map((p) => p.id), { instant });
+    // Frame the city's core (within 8 km of its centre) so one outlier doesn't zoom out the view.
+    const ids = [...(visibleIds() || PLACES.filter((p) => p.city === state.city).map((p) => p.id))];
+    const core = ids.filter((id) => meters(city().center, byId[id]) < 8000);
+    fitTo(core.length ? core : ids, { instant });
   }
 
   function select(id, { from, pan } = {}) {
@@ -742,7 +756,10 @@
       drawAccuracy();
       if (firstFix) {
         firstFix = false;
-        if (inSF()) map.jumpTo({ center: [state.me.lng, state.me.lat], zoom: 14.5 });
+        // In one of the cities? Show that one.
+        const here = Object.keys(CITIES).find((id) => meters(state.me, CITIES[id].center) < 40000);
+        if (here && here !== state.city) { setCity(here); toast(`You're in ${CITIES[here].name}`); }
+        if (inCity()) map.jumpTo({ center: [state.me.lng, state.me.lat], zoom: 14.5 });
         lastRenderAt = state.me; renderAll(); return;
       }
       // Re-sort once you've moved a block or so.
@@ -811,10 +828,25 @@
       () => toast("Couldn't copy on this device."));
   }
 
+  // ── Cities ───────────────────────────────────────────────────────────────
+  function setCity(id) {
+    if (!CITIES[id] || id === state.city) return;
+    state.city = id; state.sel = null; state.selStation = null; state.q = "";
+    const q = $("#f-q"); if (q) q.value = "";
+    if (sheetId) closeSheet();
+    fx.list = true; saveUi();
+    $("#panel").scrollTop = 0;
+    renderStations(); renderAll();
+    fitCurrent(true); // a different city: jump, don't fly across an ocean
+    if (inCity()) map.jumpTo({ center: [state.me.lng, state.me.lat], zoom: 14.5 });
+  }
+
   // ── Render all ───────────────────────────────────────────────────────────
   function renderAll() {
-    const now = sfNow();
+    const now = cityNow();
     renderClock(now);
+    $("#city-name").textContent = city().name;
+    $("#city-switch").setAttribute("aria-label", `Showing ${city().name}. Switch city`);
     document.querySelectorAll(".tabs button").forEach((b) => {
       if (b.dataset.tab === state.tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
@@ -832,7 +864,7 @@
   let swapTimer = null;
   function changeFilter() {
     document.querySelectorAll(".kinds .chip").forEach((b) => b.setAttribute("aria-pressed", String(state.kinds.has(b.dataset.kind))));
-    renderMarkers(sfNow());
+    renderMarkers(cityNow());
     const list = $("#list"), panel = $("#panel");
     clearTimeout(swapTimer);
     const swap = () => { list.classList.remove("leaving"); panel.scrollTop = 0; fx.list = true; renderAll(); };
@@ -859,10 +891,16 @@
       if (state.tab === t.dataset.tab) { $("#panel").scrollTo({ top: 0, behavior: "smooth" }); return; }
       state.tab = t.dataset.tab; state.sel = null; confirmClear = false; fx.list = true; saveUi();
       $("#panel").scrollTop = 0; renderAll();
-      if (state.tab !== "explore" || !inSF()) fitCurrent(false);
+      if (state.tab !== "explore" || !inCity()) fitCurrent(false);
       return;
     }
     switch (t.id) {
+      case "city-switch": {
+        const ids = Object.keys(CITIES);
+        setCity(ids[(ids.indexOf(state.city) + 1) % ids.length]);
+        toast(`Showing ${city().name}`);
+        return;
+      }
       case "btn-locate": case "btn-locprompt": startWatch(true); return;
       case "btn-transit":
         state.transit = !state.transit;
@@ -913,7 +951,7 @@
   renderAll();
   requestAnimationFrame(() => {
     map.resize();
-    if (!inSF()) fitCurrent(true); // a location fix that arrived first already centred the map
+    if (!inCity()) fitCurrent(true); // a location fix that arrived first already centred the map
     zoomClass();
   });
   window.addEventListener("resize", () => { map.resize(); setCollapsed(state.collapsed, false); });

@@ -195,6 +195,16 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   color: var(--text-muted); text-align: right; white-space: nowrap;
 }
 .clock { color: var(--accent); }
+/* The tagline doubles as the city switch: tap it to flip San Francisco ↔ Birmingham. */
+.city-switch { border: 0; background: none; padding: 4px 0 2px 8px; margin: -4px 0 0; cursor: pointer; font-family: inherit; }
+.city-switch #city-name { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); }
+.city-switch #city-name::after {
+  content: ""; width: 10px; height: 10px; flex: none;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 4 3 8l4 4M3 8h14M17 12l4 4-4 4M21 16H7' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 4 3 8l4 4M3 8h14M17 12l4 4-4 4M21 16H7' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.city-switch:active { transform: scale(.96); }
 .clock:not([hidden]) ~ .tagline, .tagline:has(~ .clock:not([hidden])) { display: none; } /* previewing: the label takes the tagline's place */
 
 

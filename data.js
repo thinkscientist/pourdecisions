@@ -11,6 +11,17 @@
 // approx: true when the guide gives only a neighbourhood, so the pin is
 //         placed from map data and may be a block or two off.
 
+// Cities the app covers. Each place has a `city` (San Francisco places default to "sf").
+// Birmingham is added by data-birmingham.js.
+window.CITIES = {
+  sf: {
+    name: "San Francisco", short: "SF", tz: "America/Los_Angeles",
+    center: { lat: 37.7749, lng: -122.4194 },
+    base: { name: "SoMa", lat: 37.7765, lng: -122.4060 },
+    sources: "the trip guide (30 Oct 2026)",
+  },
+};
+
 window.TRIP = {
   start: "2026-10-31",
   end: "2026-11-03",
@@ -561,6 +572,7 @@ const MAP_ADDR = {
 const APPROX = new Set([]);
 
 for (const p of window.PLACES) {
+  p.city = "sf";
   [p.lat, p.lng] = COORDS[p.id];
   if (MAP_ADDR[p.id]) { p.addr = MAP_ADDR[p.id]; p.addrFromMap = true; }
   p.approx = APPROX.has(p.id);
