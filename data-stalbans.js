@@ -9,6 +9,7 @@ window.CITIES.stalbans = {
   name: "St Albans", short: "St Albans", tz: "Europe/London",
   center: { lat: 51.7513, lng: -0.3405 },
   base: { name: "St Albans City station", lat: 51.7505, lng: -0.32767 },
+  radius: 12000, // the town and its edges; London starts not far south
   fit: 1600, // a small city: frame the centre; edge-of-town picks are a scroll or pinch away
   sources: "olive, Harden's and DesignMyNight guides, gathered 21 Nov 2026",
 };

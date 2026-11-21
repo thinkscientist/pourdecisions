@@ -140,7 +140,9 @@
 
   // The city you're looking at. Distances run from you when you're in it, else from its base.
   const city = () => CITIES[state.city];
-  const inCity = () => state.me && meters(state.me, city().center) < 40000;
+  // "In" a city means within its radius (40 km by default; smaller for a neighbourhood or a small town).
+  const near = (id) => meters(state.me, CITIES[id].center) < (CITIES[id].radius || 40000);
+  const inCity = () => !!state.me && near(state.city);
   const origin = () => (inCity() ? state.me : city().base);
 
   // ── Helpers ──────────────────────────────────────────────────────────────
@@ -756,8 +758,9 @@
       drawAccuracy();
       if (firstFix) {
         firstFix = false;
-        // In one of the cities? Show that one.
-        const here = Object.keys(CITIES).find((id) => meters(state.me, CITIES[id].center) < 40000);
+        // In one of the cities? Show the nearest one you're in (St Albans and Shoreditch are only ~30 km apart).
+        const here = Object.keys(CITIES).filter(near)
+          .sort((a, b) => meters(state.me, CITIES[a].center) - meters(state.me, CITIES[b].center))[0];
         if (here && here !== state.city) { setCity(here); toast(`You're in ${CITIES[here].name}`); }
         if (inCity()) map.jumpTo({ center: [state.me.lng, state.me.lat], zoom: 14.5 });
         lastRenderAt = state.me; renderAll(); return;
