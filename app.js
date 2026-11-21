@@ -113,6 +113,9 @@
   for (let d = new Date(TRIP.start + "T12:00:00Z"); d <= new Date(TRIP.end + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + 1)) {
     TRIP_DATES.push(d.toISOString().slice(0, 10));
   }
+  const weekFrom = (date) => Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(date + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + i); return d.toISOString().slice(0, 10);
+  });
   const state = {
     tab: saved.tab === "explore" ? "explore" : saved.tab ? "plan" : "explore",
     kinds: new Set(saved.kinds || []), // empty = everything
@@ -305,7 +308,9 @@
     if (p.dateWarn && p.dateWarn[now.date]) notes.push(p.dateWarn[now.date]);
     if (p.hoursNote) notes.push(p.hoursNote);
     const tags = [p.book && "Book ahead", ...(p.tags || []).filter((t) => !/^book|reservations/i.test(t))].filter(Boolean);
-    const anyHours = TRIP_DATES.some((date) => specFor(p, date));
+    // SF shows the trip's days; other cities show the next seven days on their own clock.
+    const days = p.city === "sf" ? TRIP_DATES : weekFrom(cityNow(p.city).date);
+    const anyHours = days.some((date) => specFor(p, date));
 
     // Photos from the venue's own site: a swipeable strip, the next one peeking in.
     // Only the first loads straight away; a photo that fails to load quietly drops out.
@@ -334,7 +339,7 @@
       ${p.order ? `<div class="d-sec"><h3>Order</h3><p>${esc(p.order)}</p></div>` : ""}
       ${tags.length ? `<p class="tags">${tags.map(esc).join(" · ")}</p>` : ""}
       <div class="d-sec"><h3>Hours</h3>
-        ${anyHours ? `<table class="hours"><tbody>${TRIP_DATES.map((date) => {
+        ${anyHours ? `<table class="hours"><tbody>${days.map((date) => {
           const h = hoursText(p, date);
           return `<tr class="${date === now.date ? "today" : ""}"><td>${dayLabel(date)}</td><td class="${h.cls}">${esc(h.text)}</td></tr>`;
         }).join("")}</tbody></table>` : `<p class="tags">Not listed. Check Google Maps before you go.</p>`}
@@ -367,9 +372,9 @@
     $("#sheet").className = "sheet";
     $("#sheet-body").innerHTML = `
       <div><h2 class="d-name" id="sheet-title">About Pour Decisions</h2>
-        <div class="d-meta">A free personal project for finding coffee and food in San Francisco, Birmingham and St Albans.</div></div>
+        <div class="d-meta">A free personal project for finding coffee and food in San Francisco, Birmingham, St Albans and Shoreditch.</div></div>
       <div class="d-sec"><h3>Check before you go</h3>
-        <p>San Francisco hours, closures and dishes come from a guide prepared on 30 October 2026; Birmingham picks come from Time Out and Visit Birmingham guides, and St Albans picks from olive, Harden's and DesignMyNight, both without opening hours. All of it can change. Check the venue's own site or Google Maps before you set off. Nothing here is a reservation.</p></div>
+        <p>San Francisco hours, closures and dishes come from a guide prepared on 30 October 2026; Birmingham picks come from Time Out and Visit Birmingham guides, St Albans picks from olive, Harden's and DesignMyNight (all three without opening hours), and Shoreditch picks from Time Out, The Infatuation, olive and London x London, with Time Out's hours where it gave them. All of it can change. Check the venue's own site or Google Maps before you set off. Nothing here is a reservation.</p></div>
       <div class="d-sec"><h3>Not affiliated</h3>
         <p>This app isn't affiliated with or endorsed by any of the places listed. Photos belong to the venues and load from their own websites. To have a photo or listing removed, <a class="link" href="${REPO}/issues" target="_blank" rel="noopener">open an issue on GitHub</a>.</p></div>
       <div class="d-sec"><h3>Your privacy</h3>

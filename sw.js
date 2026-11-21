@@ -2,11 +2,11 @@
 // App files: from the network when online (cache as the offline fallback).
 // Map: tiles, fonts and icons are cached as you browse, so areas you've already looked at
 // still draw offline. The style file is refreshed in the background so tile versions stay current.
-const APP = "pd-app-v23";
+const APP = "pd-app-v24";
 const TILES = "pd-tiles-v2";
 const TILE_LIMIT = 1500;
 const SHELL = [
-  "./", "index.html", "app.css", "app.js", "data.js", "data-birmingham.js", "data-stalbans.js",
+  "./", "index.html", "app.css", "app.js", "data.js", "data-birmingham.js", "data-stalbans.js", "data-shoreditch.js",
   "vendor/maplibre-gl.js", "vendor/maplibre-gl.css", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",
 ];
