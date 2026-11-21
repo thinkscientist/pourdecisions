@@ -84,4 +84,4 @@ Train and cable car stops sit on the map as small dark rounded-square badges car
 
 ## Cities
 
-The app covers more than one city (`window.CITIES` in `data.js`; Birmingham in `data-birmingham.js`). Each city has a name, time zone, centre and walking "base". The tagline's second line is the city switch: the city name in the accent colour with a small swap arrow; tapping it moves to the next city, jumps the map (no flying across an ocean) and shows a toast. San Francisco's train and cable car stops, and the transit button, only appear in San Francisco. Every place's open/closed status uses its own city's clock.
+The app covers more than one city (`window.CITIES` in `data.js`; Birmingham in `data-birmingham.js`, St Albans in `data-stalbans.js`). Each city has a name, time zone, centre and walking "base". The tagline's second line is the city switch: the city name in the accent colour with a small swap arrow; tapping it moves to the next city, jumps the map (no flying across an ocean) and shows a toast. San Francisco's train and cable car stops, and the transit button, only appear in San Francisco. Every place's open/closed status uses its own city's clock.

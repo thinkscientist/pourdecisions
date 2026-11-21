@@ -195,7 +195,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   color: var(--text-muted); text-align: right; white-space: nowrap;
 }
 .clock { color: var(--accent); }
-/* The tagline doubles as the city switch: tap it to flip San Francisco ↔ Birmingham. */
+/* The tagline doubles as the city switch: tap it to move to the next city. */
 .city-switch { border: 0; background: none; padding: 4px 0 2px 8px; margin: -4px 0 0; cursor: pointer; font-family: inherit; }
 .city-switch #city-name { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); }
 .city-switch #city-name::after {

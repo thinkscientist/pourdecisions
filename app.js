@@ -365,9 +365,9 @@
     $("#sheet").className = "sheet";
     $("#sheet-body").innerHTML = `
       <div><h2 class="d-name" id="sheet-title">About Pour Decisions</h2>
-        <div class="d-meta">A free personal project for finding coffee and food in San Francisco and Birmingham.</div></div>
+        <div class="d-meta">A free personal project for finding coffee and food in San Francisco, Birmingham and St Albans.</div></div>
       <div class="d-sec"><h3>Check before you go</h3>
-        <p>San Francisco hours, closures and dishes come from a guide prepared on 30 October 2026; Birmingham picks come from Time Out and Visit Birmingham guides, without opening hours. All of it can change. Check the venue's own site or Google Maps before you set off. Nothing here is a reservation.</p></div>
+        <p>San Francisco hours, closures and dishes come from a guide prepared on 30 October 2026; Birmingham picks come from Time Out and Visit Birmingham guides, and St Albans picks from olive, Harden's and DesignMyNight, both without opening hours. All of it can change. Check the venue's own site or Google Maps before you set off. Nothing here is a reservation.</p></div>
       <div class="d-sec"><h3>Not affiliated</h3>
         <p>This app isn't affiliated with or endorsed by any of the places listed. Photos belong to the venues and load from their own websites. To have a photo or listing removed, <a class="link" href="${REPO}/issues" target="_blank" rel="noopener">open an issue on GitHub</a>.</p></div>
       <div class="d-sec"><h3>Your privacy</h3>
@@ -697,9 +697,9 @@
       const ids = planIds().length ? planIds() : beenIds();
       if (ids.length) return fitTo(ids, { instant, withMe: true });
     }
-    // Frame the city's core (within 8 km of its centre) so one outlier doesn't zoom out the view.
+    // Frame the city's core (within `fit` metres of its centre, 8 km by default) so outliers don't zoom out the view.
     const ids = [...(visibleIds() || PLACES.filter((p) => p.city === state.city).map((p) => p.id))];
-    const core = ids.filter((id) => meters(city().center, byId[id]) < 8000);
+    const core = ids.filter((id) => meters(city().center, byId[id]) < (city().fit || 8000));
     fitTo(core.length ? core : ids, { instant });
   }
 

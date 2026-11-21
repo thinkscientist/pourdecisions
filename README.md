@@ -1,10 +1,10 @@
 # Pour Decisions
 
-A phone-first web app for finding coffee and food on foot in **San Francisco** (the 31 Oct – 3 Nov 2026 trip guide) and **Birmingham, UK** (40 places from Time Out and Visit Birmingham guides), with a live map, "what's closest" sorting and a list of places you've visited.
+A phone-first web app for finding coffee and food on foot in **San Francisco** (the 31 Oct – 3 Nov 2026 trip guide) **Birmingham, UK** (40 places from Time Out and Visit Birmingham guides) and **St Albans, UK** (28 places from olive, Harden's and bar guides), with a live map, "what's closest" sorting and a list of places you've visited.
 
 ## What it does
 
-- **Two cities.** Tap the city name in the title row ("COFFEE & FOOD / SAN FRANCISCO ⇆") to switch between San Francisco and Birmingham; if your location is in one of them, the app switches to it. The map, list and Plan show the current city; open/closed uses that city's local time; walking times start from you, or from SoMa / New Street station.
+- **Three cities.** Tap the city name in the title row ("COFFEE & FOOD / SAN FRANCISCO ⇆") to move to the next city (San Francisco → Birmingham → St Albans); if your location is in one of them, the app switches to it. The map, list and Plan show the current city; open/closed uses that city's local time; walking times start from you, or from SoMa, New Street station or St Albans City station.
 
 - **Nearby.** A map, plus a list sorted by walking time from you (or from your SoMa base until you share your location). Each row shows the area and whether the place is open right now, in San Francisco time. You can filter by Coffee, Eat and Drink, and search by name, area or dish.
 - **Plan.** Your own list. Tap **+ Add** on any place in Nearby to add it. Plan shows what's still to go, nearest first, each with a **Been** button, and underneath, where you've been and when. You can also mark a place as been from its details page without planning it first.
@@ -17,6 +17,7 @@ The look follows a small San Francisco design system; see [DESIGN.md](DESIGN.md)
 ## Notes on the data
 
 - **Birmingham** (`data-birmingham.js`): 26 restaurants, 12 cafés and bakeries and 2 bars from Time Out's best restaurants (Sep 2025) and best coffee (2024) lists, Visit Birmingham's independent coffee list (2024) and bar guides, gathered 14 Nov 2026, plus Opheem. The guides give no opening hours, so none are shown. Three pins (670 Grams, Harborne Kitchen, Perro) mark the street rather than the door and have a dashed outline. Six picks were left out because they couldn't be placed reliably.
+- **St Albans** (`data-stalbans.js`): 13 restaurants, 6 cafés and 9 pubs and bars from olive magazine's best restaurants in St Albans (June 2026), Harden's, DesignMyNight's best bars, A Friend Abroad's coffee spots (2025) and pub guides, gathered 21 Nov 2026. No opening hours. Walking times start from St Albans City station. Sucker Punch is pinned to its street, not its door. Left out: Thompson (closed October 2025), Per Tutti and No Nuisance (couldn't be placed reliably).
 
 - Hours, dishes and warnings come from the trip guide. Where the guide gives no hours, the app shows none rather than guessing.
 - Pin positions come from OpenStreetMap data. Five places the guide gives only a neighbourhood for, and that the map data didn't have (Piglet & Co, Restaurant Naides, Dingles, Abacá, Fikscue), were confirmed against restaurant listings on 30 October 2026. If a pin ever can only mark a neighbourhood, add its id to `APPROX` in `data.js` and it gets a dashed outline.
