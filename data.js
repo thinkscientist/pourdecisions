@@ -1,4 +1,4 @@
-// Pour Decisions — place data, transcribed from the guide
+// Stroll — place data, transcribed from the guide
 // "Coffee & restaurants, right now — San Francisco, 31 October – 3 November 2026"
 // (prepared 30 October 2026).
 //

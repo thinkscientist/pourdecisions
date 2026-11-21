@@ -1,6 +1,6 @@
-# Pour Decisions
+# Stroll
 
-A phone-first web app for finding coffee and food on foot in **San Francisco** (the 31 Oct – 3 Nov 2026 trip guide) **Birmingham, UK** (40 places from Time Out and Visit Birmingham guides) **St Albans, UK** (28 places from olive, Harden's and bar guides) and **Shoreditch, London** (50 places from Time Out, The Infatuation, olive and London x London), with a live map, "what's closest" sorting and a list of places you've visited.
+A phone-first web app for finding coffee, food and drinks within a short walk, in **San Francisco** (the 31 Oct – 3 Nov 2026 trip guide) **Birmingham, UK** (40 places from Time Out and Visit Birmingham guides) **St Albans, UK** (28 places from olive, Harden's and bar guides) and **Shoreditch, London** (50 places from Time Out, The Infatuation, olive and London x London), with a live map, "what's closest" sorting and a list of places you've visited.
 
 ## What it does
 

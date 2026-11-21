@@ -1,4 +1,4 @@
-// Pour Decisions: Birmingham, UK.
+// Stroll: Birmingham, UK.
 // Picks from Time Out's "best restaurants in Birmingham" (Sep 2025, with addresses and prices),
 // Time Out's and Visit Birmingham's best-coffee lists (2024), and bar guides, gathered 14 Nov 2026.
 // Positions geocoded from OpenStreetMap and checked by hand. The guides give no opening hours,

@@ -1,4 +1,4 @@
-/* Pour Decisions — app logic. Plain JS, no build step. */
+/* Stroll — app logic. Plain JS, no build step. */
 (() => {
   "use strict";
 
@@ -371,8 +371,8 @@
   function renderAbout() {
     $("#sheet").className = "sheet";
     $("#sheet-body").innerHTML = `
-      <div><h2 class="d-name" id="sheet-title">About Pour Decisions</h2>
-        <div class="d-meta">A free personal project for finding coffee and food in San Francisco, Birmingham, St Albans and Shoreditch.</div></div>
+      <div><h2 class="d-name" id="sheet-title">About Stroll</h2>
+        <div class="d-meta">A free personal project for finding coffee, food and drinks within a short walk, in San Francisco, Birmingham, St Albans and Shoreditch.</div></div>
       <div class="d-sec"><h3>Check before you go</h3>
         <p>San Francisco hours, closures and dishes come from a guide prepared on 30 October 2026; Birmingham picks come from Time Out and Visit Birmingham guides, St Albans picks from olive, Harden's and DesignMyNight (all three without opening hours), and Shoreditch picks from Time Out, The Infatuation, olive and London x London, with Time Out's hours where it gave them. All of it can change. Check the venue's own site or Google Maps before you set off. Nothing here is a reservation.</p></div>
       <div class="d-sec"><h3>Not affiliated</h3>
@@ -829,7 +829,7 @@
   }
   function copyList() {
     const line = (id, mark) => `${mark} ${byId[id].name} (${byId[id].area})`;
-    const text = ["Pour Decisions: my plan",
+    const text = ["Stroll: my plan",
       ...planIds().map((id) => line(id, "○")),
       ...beenIds().sort((a, b) => visited[a].localeCompare(visited[b])).map((id) => line(id, "✓"))].join("\n");
     navigator.clipboard?.writeText(text).then(() => toast("Copied. Paste it into a note to keep a backup."),

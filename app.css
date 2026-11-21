@@ -1,64 +1,64 @@
-/* Pour Decisions
+/* Stroll
    Layout: one-screen app. Map on top, a quiet list below, thumb-reach tabs
    at the bottom, place details in a bottom sheet.
 
    Design system — see DESIGN.md for how each token is meant to be used. */
 
 :root {
-  /* ── San Francisco palette (raw colours) ── */
-  --sf-bridge: #C0362C;     /* International Orange, Golden Gate Bridge */
-  --sf-fog-0: #FFFFFF;
-  --sf-fog-50: #F2F4F4;     /* Karl the Fog */
-  --sf-fog-100: #E6EAEB;
-  --sf-fog-200: #D5DBDD;
-  --sf-fog-500: #66737A;
-  --sf-night: #13212B;      /* the bay after dark */
-  --sf-sourdough: #8C5A2B;  /* sourdough crust */
-  --sf-bay: #1D5C8A;        /* San Francisco Bay */
-  --sf-dusk: #7A3E78;       /* Twin Peaks at dusk */
-  --sf-cypress: #2D6A4A;    /* Presidio cypress */
-  --sf-poppy: #B86E00;      /* California poppy */
+  /* ── Stroll palette (raw colours): warm paper, ink, and one dusk-indigo accent ── */
+  --st-indigo: #3F3CBB;     /* the accent: late-afternoon sky, the one cool colour */
+  --st-paper-0: #FFFFFF;
+  --st-paper-50: #F5F2EC;   /* warm paper */
+  --st-paper-100: #ECE7DE;
+  --st-paper-200: #DDD6CA;
+  --st-paper-500: #6B6560;  /* pencil */
+  --st-ink: #1D1B22;
+  --st-roast: #7A4E2A;      /* coffee */
+  --st-terracotta: #B0402A; /* food */
+  --st-plum: #94336E;       /* drinks */
+  --st-leaf: #2E7346;       /* open */
+  --st-amber: #965A00;      /* closing soon */
 
   /* ── Semantic tokens (use these in components) ── */
-  --bg: var(--sf-fog-50);
-  --surface: var(--sf-fog-0);
-  --surface-2: var(--sf-fog-100);
-  --line: var(--sf-fog-200);
-  --text: var(--sf-night);
-  --text-muted: var(--sf-fog-500);
-  --accent: var(--sf-bridge);
+  --bg: var(--st-paper-50);
+  --surface: var(--st-paper-0);
+  --surface-2: var(--st-paper-100);
+  --line: var(--st-paper-200);
+  --text: var(--st-ink);
+  --text-muted: var(--st-paper-500);
+  --accent: var(--st-indigo);
   --on-accent: #FFFFFF;
-  --kind-coffee: var(--sf-sourdough);
-  --kind-food: var(--sf-bay);
-  --kind-drinks: var(--sf-dusk);
-  --status-open: var(--sf-cypress);
-  --status-soon: var(--sf-poppy);
-  --status-closed: var(--sf-fog-500);
-  --warn-bg: #FBF0E0;
-  --shadow: 0 1px 2px rgb(19 33 43 / .08), 0 6px 20px rgb(19 33 43 / .10);
+  --kind-coffee: var(--st-roast);
+  --kind-food: var(--st-terracotta);
+  --kind-drinks: var(--st-plum);
+  --status-open: var(--st-leaf);
+  --status-soon: var(--st-amber);
+  --status-closed: var(--st-paper-500);
+  --warn-bg: #FBEFDD;
+  --shadow: 0 1px 2px rgb(29 27 34 / .08), 0 6px 20px rgb(29 27 34 / .10);
 
   /* ── Map (OpenFreeMap vector style, recoloured from these) ── */
-  --map-land: #EEF1F1;
-  --map-water: #C6DAE6;         /* the bay, a light wash of --sf-bay */
-  --map-water-label: #4E7A99;
-  --map-park: #D6E5DA;          /* a light wash of --sf-cypress */
-  --map-building: #E2E6E7;
-  --map-building-line: #D8DDDF;
+  --map-land: #EFEBE3;
+  --map-water: #CCD7E2;         /* a cool wash, the only blue on the page */
+  --map-water-label: #5A7089;
+  --map-park: #DCE4D0;          /* a light wash of --st-leaf */
+  --map-building: #E6E0D6;
+  --map-building-line: #DCD5CA;
   --map-road: #FFFFFF;
   --map-road-major: #FFFFFF;
-  --map-road-casing: #D5DBDD;
-  --map-rail: #C9D0D3;
-  --map-label: #66737A;
+  --map-road-casing: #DDD6CA;
+  --map-rail: #D0C9BE;
+  --map-label: #6B6560;
 
   /* ── Type ── */
-  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
   --font-body: "Atkinson Hyperlegible", -apple-system, "Segoe UI", system-ui, sans-serif;
   --fs-xs: 12px;   /* labels, meta */
   --fs-sm: 13px;   /* secondary lines */
   --fs-md: 15px;   /* body, list names */
   --fs-lg: 18px;   /* section titles */
   --fs-xl: 24px;   /* sheet title */
-  --fs-brand: 30px; /* the Pour Decisions wordmark, and nothing else */
+  --fs-brand: 32px; /* the Stroll wordmark, and nothing else */
 
   /* ── Space, shape ── */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px;
@@ -85,30 +85,30 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0D1820; --surface: #15232D; --surface-2: #1C2C37; --line: #26363F;
-    --text: #E7ECEE; --text-muted: #93A1A8;
-    --accent: #E5573F; --on-accent: #FFFFFF;
-    --kind-coffee: #C99566; --kind-food: #6FA3D6; --kind-drinks: #BD8AC4;
-    --status-open: #5CBF8A; --status-soon: #E8A93A; --status-closed: #93A1A8;
+    --bg: #121118; --surface: #1B1A23; --surface-2: #24232E; --line: #2F2D3A;
+    --text: #ECEAF2; --text-muted: #A19DAD;
+    --accent: #A3A1FF; --on-accent: #14121C;
+    --kind-coffee: #D09E70; --kind-food: #F2876A; --kind-drinks: #E58BC0;
+    --status-open: #6CC98F; --status-soon: #E8A93A; --status-closed: #A19DAD;
     --warn-bg: #2E2414;
     --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 6px 20px rgb(0 0 0 / .4);
-    --map-land: #0D1820; --map-water: #0F2A3D; --map-water-label: #6E96B3; --map-park: #13261D;
-    --map-building: #15222B; --map-building-line: #15222B; --map-road: #1F2F3A; --map-road-major: #2A3D49;
-    --map-road-casing: #0D1820; --map-rail: #2A3A44; --map-label: #8FA0A9;
+    --map-land: #121118; --map-water: #1A2233; --map-water-label: #7387A6; --map-park: #172119;
+    --map-building: #1A1922; --map-building-line: #1A1922; --map-road: #26242F; --map-road-major: #312F3C;
+    --map-road-casing: #121118; --map-rail: #2F2D3A; --map-label: #9A96A6;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0D1820; --surface: #15232D; --surface-2: #1C2C37; --line: #26363F;
-  --text: #E7ECEE; --text-muted: #93A1A8;
-  --accent: #E5573F; --on-accent: #FFFFFF;
-  --kind-coffee: #C99566; --kind-food: #6FA3D6; --kind-drinks: #BD8AC4;
-  --status-open: #5CBF8A; --status-soon: #E8A93A; --status-closed: #93A1A8;
+  --bg: #121118; --surface: #1B1A23; --surface-2: #24232E; --line: #2F2D3A;
+  --text: #ECEAF2; --text-muted: #A19DAD;
+  --accent: #A3A1FF; --on-accent: #14121C;
+  --kind-coffee: #D09E70; --kind-food: #F2876A; --kind-drinks: #E58BC0;
+  --status-open: #6CC98F; --status-soon: #E8A93A; --status-closed: #A19DAD;
   --warn-bg: #2E2414;
   --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 6px 20px rgb(0 0 0 / .4);
-  --map-land: #0D1820; --map-water: #0F2A3D; --map-water-label: #6E96B3; --map-park: #13261D;
-  --map-building: #15222B; --map-building-line: #15222B; --map-road: #1F2F3A; --map-road-major: #2A3D49;
-  --map-road-casing: #0D1820; --map-rail: #2A3A44; --map-label: #8FA0A9;
+  --map-land: #121118; --map-water: #1A2233; --map-water-label: #7387A6; --map-park: #172119;
+  --map-building: #1A1922; --map-building-line: #1A1922; --map-road: #26242F; --map-road-major: #312F3C;
+  --map-road-casing: #121118; --map-rail: #2F2D3A; --map-label: #9A96A6;
   color-scheme: dark;
 }
 
@@ -183,9 +183,9 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 /* The brand row: the wordmark on the left (the one place the display face is set large),
    the tagline right-aligned in the space opposite, both sitting on the same baseline. */
 .wordmark {
-  font: 800 var(--fs-brand)/0.95 var(--font-display);
-  font-variation-settings: "opsz" 72;
-  letter-spacing: -.035em;
+  font: italic 700 var(--fs-brand)/0.95 var(--font-display);
+  font-variation-settings: "opsz" 96, "SOFT" 100;
+  letter-spacing: -.02em;
   color: var(--text);
 }
 .wordmark::after { content: "."; color: var(--accent); margin-left: .02em; }
@@ -566,7 +566,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .photo-credit::after { content: " ↗"; }
 .photos-link { font-size: var(--fs-sm); align-self: flex-start; text-decoration: none; }
 .photos ~ div .d-name, .photos + div .d-name { margin-right: 0; }
-.d-name { font: 800 var(--fs-xl)/1.1 var(--font-display); letter-spacing: -.02em; margin: var(--sp-1) 44px 0 0; text-wrap: balance; }
+.d-name { font: 700 var(--fs-xl)/1.1 var(--font-display); font-variation-settings: "opsz" 48, "SOFT" 50; letter-spacing: -.01em; margin: var(--sp-1) 44px 0 0; text-wrap: balance; }
 .d-meta { color: var(--text-muted); font-size: var(--fs-sm); margin-top: var(--sp-1); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .d-meta .st { font-size: var(--fs-sm); }
 .d-blurb { margin: 0; max-width: 62ch; }

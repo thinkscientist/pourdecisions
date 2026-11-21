@@ -1,39 +1,47 @@
-# Pour Decisions design system
+# Stroll design system
+
+Stroll covers several cities, so its palette doesn't belong to any one of them.
 
 All tokens live at the top of `app.css`. Components use only the semantic tokens, never the raw palette. That way dark mode, which redefines the semantic tokens, just works.
 
-## Palette: San Francisco
+## Palette: warm paper, ink and dusk
 
-| Token | Light | Where it comes from | Used for |
+| Token | Light | Dark (semantic) | Used for |
 |---|---|---|---|
-| `--sf-bridge` | `#C0362C` | International Orange, Golden Gate Bridge | Accent: your location dot, the Walk button, the active tab, selection |
-| `--sf-fog-50…500` | `#F2F4F4` → `#66737A` | Karl the Fog | Page background, surfaces, lines, muted text |
-| `--sf-night` | `#13212B` | The bay after dark | Main text, and the dark-mode background family |
-| `--sf-sourdough` | `#8C5A2B` | Sourdough crust | Coffee |
-| `--sf-bay` | `#1D5C8A` | San Francisco Bay | Eat |
-| `--sf-dusk` | `#7A3E78` | Twin Peaks at dusk | Drink |
-| `--sf-cypress` | `#2D6A4A` | Presidio cypress | Open now, and "been here" ticks |
-| `--sf-poppy` | `#B86E00` | California poppy | Closing soon |
+| `--st-indigo` | `#3F3CBB` | `#A3A1FF` | The accent: the wordmark's full stop, the city name, links, your location, the Walk button, the active tab, selection |
+| `--st-paper-0…500` | `#FFFFFF` → `#6B6560` | `#1B1A23` → `#A19DAD` | Page background, surfaces, lines, muted text |
+| `--st-ink` | `#1D1B22` | `#ECEAF2` | Main text |
+| `--st-roast` | `#7A4E2A` | `#D09E70` | Coffee |
+| `--st-terracotta` | `#B0402A` | `#F2876A` | Eat |
+| `--st-plum` | `#94336E` | `#E58BC0` | Drink |
+| `--st-leaf` | `#2E7346` | `#6CC98F` | Open now, and "been here" ticks |
+| `--st-amber` | `#965A00` | `#E8A93A` | Closing soon |
+
+Every text colour above is at least 4.5:1 against both the page background and white surfaces, in both modes.
 
 Rules:
-- Orange is the only accent. Each screen uses it for one or two things at most.
-- Kind colours (coffee, eat, drink) appear only as dots, map pins and the selected filter chip.
-- Status is shown as coloured text, not badges. Closed and "opens later" are muted grey, so they don't compete with what's open.
+- Indigo is the only accent, and the only cool colour in the UI apart from the map's water. Each screen uses it for one or two things at most.
+- The kind colours are all warm (roast, terracotta, plum) so the accent never reads as a kind. They appear only as dots, map pins and the selected filter chip.
+- Status is shown as coloured text, not badges. Closed and "opens later" are muted, so they don't compete with what's open.
+
+## App icon
+
+An italic paper-white **S** with a coral full stop on indigo, with a soft light in the top-left corner. It's drawn from the wordmark, rendered to `icons/` at 512, 192 and 180 px, and kept inside the maskable safe zone.
 
 ## Map
 
-The map is OpenFreeMap's vector "Positron" style, recoloured at load time from the `--map-*` tokens. Light mode is fog-grey land, white streets, a bay-blue wash for water and a cypress wash for parks. Dark mode is the bay at night. City, state and country names are hidden so they don't sit on the pins. Pins use the kind colours, your position uses the accent, and the SoMa base is a small dark home marker.
+The map is OpenFreeMap's vector "Positron" style, recoloured at load time from the `--map-*` tokens. Light mode is warm paper land, white streets, a cool grey-blue wash for water and a leaf wash for parks. Dark mode is the same at night, in indigo-tinted greys. City, state and country names are hidden so they don't sit on the pins. Pins use the kind colours, your position uses the accent, and each city's base is a small dark home marker.
 
 ## Layout
 
-The map fills the screen and runs up under the status bar. The list is a drawer laid over it, with rounded top corners and a soft shadow that falls on the map only. Its title row carries the **Pour Decisions.** wordmark and a grab handle. There's no clock, since the phone already shows the time; the row only shows a time when previewing another day with `?now=`. Keeping the name on the drawer, not at the top, keeps it clear of the blur iOS puts under the status bar in home-screen apps.
+The map fills the screen and runs up under the status bar. The list is a drawer laid over it, with rounded top corners and a soft shadow that falls on the map only. Its title row carries the **Stroll.** wordmark and a grab handle. There's no clock, since the phone already shows the time; the row only shows a time when previewing another day with `?now=`. Keeping the name on the drawer, not at the top, keeps it clear of the blur iOS puts under the status bar in home-screen apps.
 
 **The drawer:** drag the title row down to slide the list away, leaving just the title row over a full-screen map. Drag it up to bring the list back. A flick decides by its direction; a slow drag settles on whichever side of halfway you let go. Tapping the handle or title row toggles it, and picking a tab brings the list back. While you drag, the drawer follows your finger, with resistance past either end. When it settles (`--dur-drawer`, 380ms), the map re-centres on the part you can still see. On wide screens the drawer is a fixed side panel.
 
 ## Type
 
-- **Bricolage Grotesque** for the wordmark (30px, extra bold, tightly spaced, `--fs-brand`) and the place name in the details sheet. Nothing else uses it, so the brand is the only big display type on the main screen.
-- **Brand row:** **Pour Decisions.** with the orange full stop on the left; a small spaced-capitals tagline, *COFFEE & FOOD / SAN FRANCISCO*, right-aligned on two lines opposite it, on the same baseline. On narrow phones the tagline drops under the name on one line. When previewing with `?now=`, an orange *PREVIEW / date, time* label takes the tagline's place. Headings inside the drawer (like "Your plan") stay at body size so nothing competes with it.
+- **Fraunces** (a soft, slightly wonky serif) for the wordmark, set italic at 32px (`--fs-brand`) with its softness turned up so it feels unhurried, and upright for the place name in the details sheet. Nothing else uses it, so the brand is the only big display type on the main screen.
+- **Brand row:** **Stroll.** with the indigo full stop on the left; a small spaced-capitals tagline, *COFFEE & FOOD / city name*, with the city in indigo as the city switch,, right-aligned on two lines opposite it, on the same baseline. On narrow phones the tagline drops under the name on one line. When previewing with `?now=`, an indigo *PREVIEW / date, time* label takes the tagline's place. Headings inside the drawer (like "Your plan") stay at body size so nothing competes with it.
 - **Atkinson Hyperlegible** for everything else. It was designed for legibility, which helps when you're reading in sunlight while walking.
 - Scale: `--fs-xs` 12, `--fs-sm` 13, `--fs-md` 15, `--fs-lg` 18, `--fs-xl` 24. List rows use 15 for the name and 13 for the line under it.
 
@@ -45,8 +53,8 @@ The map fills the screen and runs up under the status bar. The list is a drawer 
 
 ## Components
 
-- **Row:** coloured dot and name (wrapping to two lines rather than being cut off), one muted line under it (area · status), then two fixed-width columns: walking time with a small walking-person icon (`--walk-col`), and the button (`--ctl-col`). Because both columns are fixed, the walking icons line up in a straight column down every list, whatever the button says. The same row is used everywhere. Its control on the right depends on the tab: **+ Add** / **✓ Added** in Nearby (added is an orange tint, not a solid fill, so a list of them stays calm), a green **✓ Been** button for places still to go in your plan, and a solid green tick for places you've been (tap to undo).
-- **Plan:** your own list. **To go** is sorted nearest first. **Been** sits underneath, latest first, with times. It starts empty, with a hint pointing at the Add button. On the map, places in your plan get an orange ring.
+- **Row:** coloured dot and name (wrapping to two lines rather than being cut off), one muted line under it (area · status), then two fixed-width columns: walking time with a small walking-person icon (`--walk-col`), and the button (`--ctl-col`). Because both columns are fixed, the walking icons line up in a straight column down every list, whatever the button says. The same row is used everywhere. Its control on the right depends on the tab: **+ Add** / **✓ Added** in Nearby (added is an indigo tint, not a solid fill, so a list of them stays calm), a green **✓ Been** button for places still to go in your plan, and a solid green tick for places you've been (tap to undo).
+- **Plan:** your own list. **To go** is sorted nearest first. **Been** sits underneath, latest first, with times. It starts empty, with a hint pointing at the Add button. On the map, places in your plan get an indigo ring.
 - **Chip:** an outlined pill. When on, it fills with its kind colour. With no chips on, everything shows.
 - **Sheet:** photos (when the venue's site has good ones), title, a meta line, two toggles (**Add to plan** and **Mark as been**, so you can tick somewhere you wandered into), then only the sections that have content: notes, description, order, hours, address. Walk and Google Maps are pinned at the bottom.
 

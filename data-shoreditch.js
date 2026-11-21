@@ -1,4 +1,4 @@
-// Pour Decisions: Shoreditch, London.
+// Stroll: Shoreditch, London.
 // Picks from Time Out's best Shoreditch restaurants (revamped Jan 2026, with addresses, prices and
 // some hours) and best Shoreditch bars (Sep 2026), The Infatuation's best Shoreditch bars (Jul 2025),
 // olive's Shoreditch guide (Aug 2026) and London x London's café guide (updated Sep 2026),

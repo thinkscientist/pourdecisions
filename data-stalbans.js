@@ -1,4 +1,4 @@
-// Pour Decisions: St Albans, Hertfordshire, UK.
+// Stroll: St Albans, Hertfordshire, UK.
 // Picks from olive magazine's "best restaurants in St Albans" (June 2026), Harden's St Albans
 // guide, DesignMyNight's best bars, A Friend Abroad's coffee spots (2025) and pub guides,
 // gathered 21 Nov 2026. Positions geocoded from OpenStreetMap and checked by hand.
