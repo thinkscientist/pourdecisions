@@ -2,7 +2,7 @@
 // App files: from the network when online (cache as the offline fallback).
 // Map: tiles, fonts and icons are cached as you browse, so areas you've already looked at
 // still draw offline. The style file is refreshed in the background so tile versions stay current.
-const APP = "stroll-app-v25";
+const APP = "stroll-app-v26";
 const TILES = "pd-tiles-v2";
 const TILE_LIMIT = 1500;
 const SHELL = [

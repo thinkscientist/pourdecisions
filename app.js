@@ -367,7 +367,7 @@
   }
   // ── About ────────────────────────────────────────────────────────────────
   const ABOUT = "about";
-  const REPO = "https://github.com/thinkscientist/pourdecisions";
+  const REPO = "https://github.com/thinkscientist/stroll";
   function renderAbout() {
     $("#sheet").className = "sheet";
     $("#sheet-body").innerHTML = `
